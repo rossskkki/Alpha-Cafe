@@ -1,0 +1,68 @@
+server:
+  port: 8080
+
+spring:
+  profiles:
+    active: dev
+  main:
+    allow-circular-references: true
+  datasource:
+    druid:
+      driver-class-name: ${siki.datasource.driver-class-name}
+      url: jdbc:mysql://${siki.datasource.host}:${siki.datasource.port}/${siki.datasource.database}
+      username: ${siki.datasource.username}
+      password: ${siki.datasource.password}
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+  data:
+    redis:
+      host: ${siki.redis.host}
+      port: ${siki.redis.port}
+      database: ${siki.redis.database}
+
+mybatis:
+  #mapper配置文件
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.siki.entity
+  configuration:
+    #开启驼峰命名
+    map-underscore-to-camel-case: true
+
+logging:
+  level:
+    com:
+      siki:
+        mapper: debug
+        service: info
+        controller: info
+
+siki:
+  jwt:
+    # 设置jwt签名加密时使用的秘钥
+    admin-secret-key: itcast
+    # 设置jwt过期时间
+    admin-ttl: 7200000
+    # 设置前端传递过来的令牌名称
+    admin-token-name: token
+    user-secret-key: itheima
+    user-ttl: 7200000
+    user-token-name: authentication
+  alioss:
+    endpoint: ${siki.alioss.endpoint}
+    access-key-id: ${siki.alioss.access-key-id}
+    access-key-secret: ${siki.alioss.access-key-secret}
+    bucket-name: ${siki.alioss.bucket-name}
+  wechat:
+    appid: ${siki.wechat.appid}
+    secret: ${siki.wechat.secret}
+    mchid: ${siki.wechat.mchid}
+    mchSerialNo: ${siki.wechat.mchid}
+    privateKeyFilePath: ${siki.wechat.privateKeyFilePath}
+    apiV3Key: ${siki.wechat.apiV3Key}
+    weChatPayCertFilePath: ${siki.wechat.weChatPayCertFilePath}
+    notifyUrl: ${siki.wechat.notifyUrl}
+    refundNotifyUrl: ${siki.wechat.refundNotifyUrl}
+  shop:
+    address: ${siki.shop.address}
+  baidu:
+    ak: ${siki.baidu.ak}

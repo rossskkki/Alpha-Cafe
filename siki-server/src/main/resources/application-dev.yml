@@ -1,0 +1,31 @@
+siki:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    host: localhost
+    port: 3306
+    database: hku-alpha
+    username: root
+    password: 1234
+  alioss:
+    endpoint: oss-ap-northeast-2.aliyuncs.com
+    access-key-id: LTAI5t9QtfYvqJVVn8F11u9e
+    access-key-secret: SGOIoAna4OCgBL3fEhD5LmHJMv4fRe
+    bucket-name: siki-rossskkki
+  redis:
+    host: localhost
+    port: 6379
+    database: 1
+  wechat:
+    appid: wxe6c278efd3918d3b
+    secret: 9690bf4d168a30fac3773322b9c4bae1
+    mchid: 1561414331
+    mchSerialNo: 4B3B3DC35414AD50B1B755BAF8DE9CC7CF407606
+    privateKeyFilePath: C:\software\apiclient_key.pem
+    apiV3Key: CZBK51236435wxpay435434323FFDuv3
+    weChatPayCertFilePath: C:\software\wechatpay_166D96F876F45C7D07CE98952A96EC980368ACFC.pem
+    notifyUrl: http://7972bf0.r3.cpolar.top/notify/paySuccess
+    refundNotifyUrl: http://7972bf0.r3.cpolar.top/notify/refundSuccess
+  shop:
+    address: 深圳市罗湖区京基东方华都
+  baidu:
+    ak: iUP4AxLo3DrCNHKRMBe7Sp4KyuQsa7nU
