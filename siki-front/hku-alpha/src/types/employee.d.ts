@@ -1,5 +1,5 @@
 export type UserInfo = {
   id: number
-  account: string
+  username: string
   token: string
 }

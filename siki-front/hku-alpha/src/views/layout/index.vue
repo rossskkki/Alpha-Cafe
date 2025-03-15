@@ -199,7 +199,7 @@ const audio2 = ref<HTMLAudioElement | null>(null)
 
 const webSocket = () => {
   const clientId = Math.random().toString(36).slice(2)
-  const socketUrl = 'ws://localhost:8081/ws/' + clientId
+  const socketUrl = 'ws://localhost:8080/ws/' + clientId
   console.log('socketUrl', socketUrl)
 
   if (typeof WebSocket == 'undefined') {
@@ -324,7 +324,7 @@ onBeforeUnmount(() => {
         <el-icon class="icon1" v-else>
           <Fold @click.stop="isCollapse = !isCollapse" />
         </el-icon>
-        <div class="status">{{ status == 1 ? '营业中' : "打烊中" }}</div>
+        <div class="status" :class="status == 1 ? 'status-open' : 'status-closed'">{{ status == 1 ? '营业中' : "打烊中" }}</div>
         <div class="rightAudio">
           <audio ref="audio1" hidden>
             <source src="../../assets/preview.mp3" type="audio/mp3" />
@@ -335,7 +335,7 @@ onBeforeUnmount(() => {
         </div>
         <el-dropdown style="float: right">
           <el-button type="primary">
-            {{ userInfoStore.userInfo ? userInfoStore.userInfo.account : '未登录' }}
+            {{ userInfoStore.userInfo ? userInfoStore.userInfo.username : '未登录' }}
             <el-icon class="arrow-down-icon"><arrow-down /></el-icon>
           </el-button>
           <template #dropdown>
@@ -406,8 +406,15 @@ onBeforeUnmount(() => {
     margin: 15px 50px;
     padding: 0 10px;
     border-radius: 5px;
-    background-color: #F4606C;
     color: #2e383f;
+  }
+
+  .status-open {
+    background-color: #67C23A; /* 绿色 - 营业中 */
+  }
+
+  .status-closed {
+    background-color: #F56C6C; /* 红色 - 打烊中 */
   }
 }
 

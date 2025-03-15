@@ -8,14 +8,14 @@ import { useUserInfoStore } from '@/store'
 const userInfoStore = useUserInfoStore()
 
 const form = ref({
-  account: '',
+  username: '',
   password: ''
 });
 // 表单校验的ref
 const loginRef = ref()
 
 const rules = {
-  account: [
+  username: [
     { required: true, message: '请输入用户名', trigger: 'blur' },
     { pattern: /^[a-zA-Z0-9]{1,10}$/, message: '用户名必须是1-10的字母数字', trigger: 'blur' }
   ],
@@ -35,7 +35,7 @@ const loginFn = async () => {
     const { data: res } = await loginAPI(form.value)
     console.log(res)
     // 登录失败，提示用户，这个提示已经在响应拦截器中统一处理了，这里直接return就行
-    if (res.code !== 0) {
+    if (res.code != 0) {
       return false
     }
     // 登录成功，提示用户
@@ -110,8 +110,8 @@ const loginFn = async () => {
     </div>
     <el-form label-width="0px" class="login-box" :model="form" :rules="rules" ref="loginRef">
       <div class="title-box">登 录</div>
-      <el-form-item prop="account">
-        <el-input v-model="form.account" placeholder="请输入账号"></el-input>
+      <el-form-item prop="username">
+        <el-input v-model="form.username" placeholder="请输入账号"></el-input>
       </el-form-item>
       <el-form-item prop="password">
         <el-input type="password" v-model="form.password" placeholder="请输入密码"></el-input>

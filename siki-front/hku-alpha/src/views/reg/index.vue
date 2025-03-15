@@ -6,7 +6,7 @@ import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
 
 const form = ref({ // 表单的数据对象
-  account: '', // 用户名
+  username: '', // 用户名
   password: '', // 密码
   repassword: '' // 确认密码
 })
@@ -25,7 +25,7 @@ const samePwd = (rules: any, value: any, callback: any) => {
   }
 }
 const rules = { // 表单的规则检验对象
-  account: [
+  username: [
     { required: true, message: '请输入用户名', trigger: 'blur' },
     {
       pattern: /^[a-zA-Z0-9]{1,10}$/,
@@ -140,8 +140,8 @@ const registerFn = async () => {
       <!-- 注册的表单区域 -->
       <!-- el-form 自带校验能力，所以直接自定义规则就行(不用什么自定义监听之类的) -->
       <el-form :model="form" label-width="0px" :rules="rules" ref="registerRef">
-        <el-form-item prop="account">
-          <el-input placeholder="请输入用户名" v-model="form.account"></el-input>
+        <el-form-item prop="username">
+          <el-input placeholder="请输入用户名" v-model="form.username"></el-input>
         </el-form-item>
         <el-form-item prop="password">
           <el-input type="password" placeholder="请输入密码" v-model="form.password"></el-input>

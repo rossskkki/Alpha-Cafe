@@ -15,11 +15,11 @@ const userInfoStore = useUserInfoStore()
 instance.interceptors.request.use(
   (config) => {
     // config配置对象（要请求后台的参数都在这个对象上）
-    // console.log('------请求拦截器-------')
+    console.log('------请求拦截器-------')
     const token = userInfoStore.userInfo ? userInfoStore.userInfo.token : null
     // 在发起时要统一携带请求头Authorization和token值
     // 判断，登录和注册页面，pinia里无token，而且登录接口和注册接口也不需要携带token（其他页面需要——）
-    // console.log('token:', token)
+    console.log('token:', token)
     if (token) {
       // 为请求头挂载 Authorization 字段
       config.headers.Authorization = token
@@ -38,7 +38,7 @@ instance.interceptors.response.use(
     // console.log('------响应拦截器-------')
     console.log(response)
     // 如果返回的data里有状态码code并且不是0，说明后端返回了错误信息（token过期等），这时候要给前端提示错误信息
-    if ('code' in response.data && response.data.code !== 0) {
+    if ('code' in response.data && response.data.code != 0) {
       // "xxx已存在" 等各种重复错误，后端有返回提示信息，此处在前端用ElMessage做统一拦截提示
       ElMessage.error(response.data.msg)
     }

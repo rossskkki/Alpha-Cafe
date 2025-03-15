@@ -10,7 +10,7 @@ import { useUserInfoStore } from '@/store'
 interface employee {
   id: number
   name: string
-  account: string
+  username: string
   phone: string
   age: number
   gender: string
@@ -132,7 +132,7 @@ const delete_btn = (row: any) => {
     <el-table :data="employeeList" stripe>
       <!-- <el-table-column prop="id" label="id" /> -->
       <el-table-column prop="name" label="姓名" align="center" />
-      <el-table-column prop="account" label="账号" align="center" />
+      <el-table-column prop="username" label="账号" align="center" />
       <el-table-column prop="phone" label="手机号" width="120px" align="center" />
       <el-table-column prop="age" label="年龄" align="center" />
       <el-table-column prop="gender" label="性别" align="center" />
@@ -154,15 +154,15 @@ const delete_btn = (row: any) => {
         <!-- scope 的父组件是 el-table -->
         <template #default="scope">
           <!-- <el-button @click="update_btn(scope.row)" type="primary">修改</el-button> -->
-          <el-button @click="update_btn(scope.row)" type="primary" :disabled="userInfoStore.userInfo?.account !== 'cyh'
-            && userInfoStore.userInfo?.account !== scope.row.account ? true : false">修改
+          <el-button @click="update_btn(scope.row)" type="primary" :disabled="userInfoStore.userInfo?.username !== 'cyh'
+            && userInfoStore.userInfo?.username !== scope.row.username ? true : false">修改
           </el-button>
           <el-button @click="change_btn(scope.row)" plain :type="scope.row.status === 1 ? 'danger' : 'primary'"
-            :disabled="userInfoStore.userInfo?.account !== 'cyh' ? true : false">
+            :disabled="userInfoStore.userInfo?.username !== 'cyh' ? true : false">
             {{ scope.row.status === 1 ? '禁用' : '启用' }}
           </el-button>
           <el-button @click="delete_btn(scope.row)" type="danger"
-            :disabled="userInfoStore.userInfo?.account !== 'cyh' ? true : false">删除
+            :disabled="userInfoStore.userInfo?.username !== 'cyh' ? true : false">删除
           </el-button>
         </template>
       </el-table-column>

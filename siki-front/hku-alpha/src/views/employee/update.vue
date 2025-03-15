@@ -13,7 +13,7 @@ const id = ref()
 const form = reactive({
   id: 0,
   name: '',
-  account: '',
+  username: '',
   phone: '',
   age: '',
   gender: '',
@@ -55,7 +55,7 @@ const rules = {
     { min: 2, message: '姓名长度不能少于2个字符', trigger: 'blur' },
     { max: 20, message: '姓名长度不能超过20个字符', trigger: 'blur' },
   ],
-  account: [
+  username: [
     { required: true, trigger: 'blur', message: '不能为空' },
     { pattern: /^[a-zA-Z0-9]{1,10}$/, message: '用户名必须是1-10的字母数字', trigger: 'blur' }
   ],
@@ -136,7 +136,7 @@ const submit = async () => {
         console.log('查询修改后的员工')
         console.log(employee)
         if (userInfoStore.userInfo) {
-          userInfoStore.userInfo.account = employee.data.account
+          userInfoStore.userInfo.username = employee.data.username
         }
       }
       // 然后进行 消息提示，页面跳转 等操作
@@ -190,8 +190,8 @@ init()
       <el-form-item label="姓名" :label-width="formLabelWidth" prop="name">
         <el-input v-model="form.name" autocomplete="off" />
       </el-form-item>
-      <el-form-item label="账号" :label-width="formLabelWidth" prop="account">
-        <el-input v-model="form.account" autocomplete="off" />
+      <el-form-item label="账号" :label-width="formLabelWidth" prop="username">
+        <el-input v-model="form.username" autocomplete="off" />
       </el-form-item>
       <el-form-item label="电话" :label-width="formLabelWidth" prop="phone">
         <el-input v-model="form.phone" autocomplete="off" />
