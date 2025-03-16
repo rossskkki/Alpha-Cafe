@@ -112,8 +112,8 @@ const to_add_update = (row?: any) => {
 // 修改菜品状态
 const change_btn = async (row: any) => {
   console.log('要修改的行数据')
-  console.log(row)
-  await updateDishStatusAPI(row.id)
+  console.log(row.id, row.status)
+  await updateDishStatusAPI(row.id, row.status === 1 ? 0 : 1)
   // 修改后刷新页面，更新数据
   showPageList()
   ElMessage({

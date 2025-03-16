@@ -56,9 +56,9 @@ public class CategoryController {
      * @param id
      * @return
      */
-    @DeleteMapping
+    @DeleteMapping("/{id}")
     @ApiOperation("删除分类")
-    public Result<String> deleteById(Long id){
+    public Result<String> deleteById(@PathVariable Long id){
         log.info("删除分类：{}", id);
         categoryService.deleteById(id);
         return Result.success();
@@ -78,14 +78,14 @@ public class CategoryController {
 
     /**
      * 启用、禁用分类
-     * @param status
+     * @param id
      * @param id
      * @return
      */
-    @PostMapping("/status/{status}")
+    @PutMapping("/status/{id}")
     @ApiOperation("启用禁用分类")
-    public Result<String> startOrStop(@PathVariable("status") Integer status, Long id){
-        categoryService.startOrStop(status,id);
+    public Result<String> startOrStop(@PathVariable("id")Long id){
+        categoryService.startOrStop(id);
         return Result.success();
     }
 
@@ -99,5 +99,17 @@ public class CategoryController {
     public Result<List<Category>> list(Integer type){
         List<Category> list = categoryService.list(type);
         return Result.success(list);
+    }
+
+    /**
+     * 根据id查询分类
+     * @param id
+     * @return
+     */
+    @GetMapping("/{id}")
+    @ApiOperation("根据id查询分类")
+    public Result<Category> getById(@PathVariable Long id){
+        Category category = categoryService.getById(id);
+        return Result.success(category);
     }
 }

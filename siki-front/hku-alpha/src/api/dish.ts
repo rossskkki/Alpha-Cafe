@@ -57,11 +57,12 @@ export const updateDishAPI = (params: any) => {
  * @param params 菜品id
  * @returns
  */
-export const updateDishStatusAPI = (id: number) => {
-  console.log('发请求啊！', id)
+export const updateDishStatusAPI = (id: number, params: any) => {
+  console.log('发请求啊！', id, params)
   return request({
-    url: `/dish/status/${id}`,
-    method: 'put'
+    url: `/dish/status/${params}`,
+    method: 'post',
+    params: { id }
   })
 }
 

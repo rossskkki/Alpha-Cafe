@@ -77,6 +77,7 @@ const init = async () => {
     form.id = id.value
     let category = await getCategoryByIdAPI(id.value)
     console.log(category)
+    category.data.data.type === 1 ? category.data.data.type = '菜品分类' : category.data.data.type = '套餐分类'
     Object.assign(form, category.data.data)
     console.log(form)
   } else {

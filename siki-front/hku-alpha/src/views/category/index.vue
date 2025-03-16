@@ -164,7 +164,7 @@ const delete_btn = (row: any) => {
           <!-- <el-button class="play_btn" @click="playSong(scope.row.audio)">Play</el-button> -->
           <el-button @click="update_btn(scope.row)" type="primary">修改</el-button>
           <el-button @click="change_btn(scope.row)" plain :type="scope.row.status === 1 ? 'danger' : 'primary'">
-            {{ scope.row.status === 1 ? '停售' : '起售' }}</el-button>
+            {{ scope.row.status === 1 ? '停用' : '启用' }}</el-button>
           <el-button @click="delete_btn(scope.row)" type="danger">删除</el-button>
         </template>
       </el-table-column>

@@ -108,10 +108,13 @@ public class CategoryServiceImpl implements CategoryService {
 
     /**
      * 启用、禁用分类
-     * @param status
+     * @param id
      * @param id
      */
-    public void startOrStop(Integer status, Long id) {
+    public void startOrStop(Long id) {
+        //查询当前分类状态
+        Integer oldstatus = categoryMapper.getStatusById(id);
+        Integer status = oldstatus == StatusConstant.ENABLE ? StatusConstant.DISABLE : StatusConstant.ENABLE;
         Category category = Category.builder()
                 .id(id)
                 .status(status)
@@ -128,5 +131,15 @@ public class CategoryServiceImpl implements CategoryService {
      */
     public List<Category> list(Integer type) {
         return categoryMapper.list(type);
+    }
+
+    /**
+     * 根据id查询分类
+     * @param id
+     * @return
+     */
+    @Override
+    public Category getById(Long id) {
+        return categoryMapper.getById(id);
     }
 }

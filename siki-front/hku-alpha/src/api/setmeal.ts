@@ -57,11 +57,12 @@ export const updateSetmealAPI = (params: any) => {
  * @param params 套餐id
  * @returns
  */
-export const updateSetmealStatusAPI = (id: number) => {
+export const updateSetmealStatusAPI = (id: number, params:any) => {
   console.log('套餐id', id)
   return request({
-    url: `/setmeal/status/${id}`,
-    method: 'put'
+    url: `/setmeal/status/${params}`,
+    method: 'post',
+    params: { id }
   })
 }
 

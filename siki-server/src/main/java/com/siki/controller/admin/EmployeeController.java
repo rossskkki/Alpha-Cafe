@@ -4,6 +4,7 @@ import com.siki.constant.JwtClaimsConstant;
 import com.siki.dto.EmployeeDTO;
 import com.siki.dto.EmployeeLoginDTO;
 import com.siki.dto.EmployeePageQueryDTO;
+import com.siki.dto.PasswordEditDTO;
 import com.siki.entity.Employee;
 import com.siki.properties.JwtProperties;
 import com.siki.result.PageResult;
@@ -139,6 +140,20 @@ public class EmployeeController {
     public Result update(@RequestBody EmployeeDTO employeeDTO) {
         log.info("修改员工：{}", employeeDTO);
         employeeService.update(employeeDTO);
+        return Result.success();
+    }
+
+    /**
+     * 修改员工密码
+     * @return
+     */
+    @PutMapping("/fixpwd")
+    @ApiOperation(value = "修改员工密码")
+    public Result fixpwd(@RequestBody PasswordEditDTO passwordEditDTO) {
+        String oldPwd = passwordEditDTO.getOldPwd();
+        String newPwd = passwordEditDTO.getNewPwd();
+        log.info("修改员工密码：oldPassword={}, newPassword={}", oldPwd, newPwd);
+        employeeService.fixpwd(oldPwd, newPwd);
         return Result.success();
     }
 }

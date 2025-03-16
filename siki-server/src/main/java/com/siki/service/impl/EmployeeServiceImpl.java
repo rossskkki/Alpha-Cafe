@@ -142,5 +142,34 @@ public class EmployeeServiceImpl implements EmployeeService {
         employeeMapper.update(employee);
     }
 
+    /**
+     * 修改密码
+     * @param oldPassword
+     * @param newPassword
+     */
+    @Override
+    public void fixpwd(String oldPassword, String newPassword) {
+        //1、根据当前登录用户的id查询数据库中的数据
+        Long id = BaseContext.getCurrentId();
+        Employee employee = employeeMapper.getById(id);
+
+        //2、处理各种异常情况（密码不对）
+        // md5加密
+        oldPassword = DigestUtils.md5DigestAsHex(oldPassword.getBytes());
+        if (!oldPassword.equals(employee.getPassword())) {
+            //密码错误
+            throw new PasswordErrorException(MessageConstant.PASSWORD_ERROR);
+        }
+
+        //3、修改密码
+        newPassword = DigestUtils.md5DigestAsHex(newPassword.getBytes());
+        if (oldPassword.equals(newPassword)) {
+            //新密码和旧密码一样
+            throw new PasswordErrorException(MessageConstant.PASSWORD_SAME);
+        }
+        Employee updateEmployee = Employee.builder().id(id).password(newPassword).build();
+        employeeMapper.update(updateEmployee);
+    }
+
 
 }

@@ -46,4 +46,11 @@ public interface EmployeeService {
      * @param employeeDTO
      */
     void update(EmployeeDTO employeeDTO);
+
+    /**
+     * 修改密码
+     * @param oldPassword
+     * @param newPassword
+     */
+    void fixpwd(String oldPassword, String newPassword);
 }

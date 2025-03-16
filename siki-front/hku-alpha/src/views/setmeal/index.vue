@@ -113,13 +113,15 @@ const to_add_update = (row?: any) => {
 const change_btn = async (row: any) => {
   console.log('要修改的行数据')
   console.log(row)
-  await updateSetmealStatusAPI(row.id)
+  const res = await updateSetmealStatusAPI(row.id, row.status === 1 ? 0 : 1)
   // 修改后刷新页面，更新数据
+  if (res.data.code === 0) {
+    ElMessage({
+      type: 'success',
+      message: '修改成功',
+    })
+  }
   showPageList()
-  ElMessage({
-    type: 'success',
-    message: '修改成功',
-  })
 }
 
 // 删除套餐
