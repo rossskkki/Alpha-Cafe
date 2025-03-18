@@ -12,7 +12,7 @@ interface setmeal {
   id: number
   name: string
   pic: string
-  detail: string
+  description: string
   price: number
   status: string
   categoryId: number
@@ -209,7 +209,7 @@ const deleteBatch = (row?: any) => {
           <img v-else src="/src/assets/image/user_default.png" alt="" />
         </template>
       </el-table-column>
-      <el-table-column prop="detail" label="详情" width="150px" align="center" />
+      <el-table-column prop="description" label="详情" width="150px" align="center" />
       <el-table-column prop="price" label="价格" align="center" />
       <el-table-column prop="status" label="状态" align="center">
         <template #default="scope">

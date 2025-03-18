@@ -25,7 +25,7 @@ export const getUserStatisticsAPI = (params: any) => {
 // 订单统计
 export const getOrderStatisticsAPI = (params: any) => {
   return request({
-    url: `/report/orderStatistics`,
+    url: `/report/ordersStatistics`,
     method: 'get',
     params
   })
@@ -34,7 +34,7 @@ export const getOrderStatisticsAPI = (params: any) => {
 // 销量排名TOP10
 export const getTop10StatisticsAPI = (params: any) => {
   return request({
-    url: `/report/top10Statistics`,
+    url: `/report/top10`,
     method: 'get',
     params
   })

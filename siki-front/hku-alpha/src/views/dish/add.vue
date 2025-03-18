@@ -3,6 +3,7 @@ import { reactive, ref, watch } from 'vue'
 import SelectInput from './components/SelectInput.vue'
 import { addDishAPI, getDishByIdAPI, updateDishAPI } from '@/api/dish'
 import { getCategoryPageListAPI } from '@/api/category'
+import { uploadFileAPI } from '@/api/common'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 
@@ -37,9 +38,9 @@ const formLabelWidth = '70px'
 const form = reactive({
   id: 0,
   name: '',
-  pic: '',
+  image: '',
   dishFlavors: [] as DishFlavor[],
-  detail: '',
+  description: '',
   price: '',
   status: '',
   categoryId: ''
@@ -54,7 +55,7 @@ const rules = {
   name: [
     { required: true, trigger: 'blur', message: '不能为空' },
   ],
-  detail: [
+  description: [
     { required: true, trigger: 'blur', message: '不能为空' },
   ],
   price: [
@@ -81,27 +82,35 @@ const chooseImg = () => {
 }
 
 // 在文件管理器中选择图片后触发的改变事件：预览
-const onFileChange1 = (e: Event) => {
+const onFileChange1 = async (e: Event) => {
   // 获取用户选择的文件列表（伪数组）
   console.log(e)
   const target = e.target as HTMLInputElement
   const files = target.files;
-  if (files && files.length > 0) {
-    // 选择了图片
-    console.log(files[0])
-    // 文件 -> base64字符串  (可以发给后台)
-    // 1. 创建 FileReader 对象
-    const fr = new FileReader()
-    // 2. 调用 readAsDataURL 函数，读取文件内容
-    fr.readAsDataURL(files[0])
-    // 3. 监听 fr 的 onload 事件，文件转为base64字符串成功后会触发该事件
-    fr.onload = () => {
-      // 4. 通过 e.target.result 获取到读取的结果，值是字符串（base64 格式的字符串）
-      form.pic = fr.result as string
-      console.log('avatar')
-      console.log(form.pic)
-    }
+  console.log(files)
+  if (files && files[0]) {
+    const path = await uploadFileAPI(files[0]);
+    console.log(path)
+    form.image = path.data.data;
+  } else {
+    console.error('No file selected');
   }
+  // if (files && files.length > 0) {
+  //   // 选择了图片
+  //   console.log(files[0])
+  //   // 文件 -> base64字符串  (可以发给后台)
+  //   // 1. 创建 FileReader 对象
+  //   const fr = new FileReader()
+  //   // 2. 调用 readAsDataURL 函数，读取文件内容
+  //   fr.readAsDataURL(files[0])
+  //   // 3. 监听 fr 的 onload 事件，文件转为base64字符串成功后会触发该事件
+  //   fr.onload = () => {
+  //     // 4. 通过 e.target.result 获取到读取的结果，值是字符串（base64 格式的字符串）
+  //   form.image = fr.result as string
+  //   console.log('avatar')
+  //   console.log(form.image)
+  //   }
+  // }
 }
 
 // 按钮 - 添加口味
@@ -197,9 +206,9 @@ const submit = async (keep: any) => {
       if (keep) {
         form.id = 0
         form.name = ''
-        form.pic = ''
+        form.image = ''
         form.dishFlavors = []
-        form.detail = ''
+        form.description = ''
         form.price = ''
         form.status = ''
         form.categoryId = ''
@@ -279,10 +288,10 @@ init()
       <el-form-item label="名称" :label-width="formLabelWidth" prop="name">
         <el-input v-model="form.name" autocomplete="off" />
       </el-form-item>
-      <el-form-item label="图片" :label-width="formLabelWidth" prop="pic">
-        <img class="the_img" v-if="!form.pic" src="/src/assets/image/user_default.png" alt="" />
-        <img class="the_img" v-else :src="form.pic" alt="" />
-        <input type="file" accept="image/*" style="display: none" ref="inputRef1" @change="onFileChange1" />
+      <el-form-item label="图片" :label-width="formLabelWidth" prop="image">
+        <img class="the_img" v-if="!form.image" src="/src/assets/image/user_default.png" alt="" />
+        <img class="the_img" v-else :src="form.image" alt="" />
+        <input type="file" accept="image/*" style="display: none" ref="inputRef1" @change="onFileChange1"/>
         <el-button type="primary" @click="chooseImg">
           <el-icon style="font-size: 15px; margin-right: 10px;">
             <Plus />
@@ -318,8 +327,8 @@ init()
           </div>
         </div>
       </el-form-item>
-      <el-form-item label="详情" :label-width="formLabelWidth" prop="detail">
-        <el-input v-model="form.detail" autocomplete="off" type="textarea" />
+      <el-form-item label="详情" :label-width="formLabelWidth" prop="description">
+        <el-input v-model="form.description" autocomplete="off" type="textarea" />
       </el-form-item>
       <el-form-item label="价格" :label-width="formLabelWidth" prop="price">
         <el-input v-model="form.price" autocomplete="off" />

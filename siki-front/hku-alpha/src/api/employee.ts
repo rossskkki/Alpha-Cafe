@@ -100,11 +100,12 @@ export const updateEmployeeAPI = (params: any) => {
  * @param params 员工id
  * @returns 
  */
-export const updateEmployeeStatusAPI = (id: number) => {
+export const updateEmployeeStatusAPI = (id: number, params: any) => {
   console.log('员工id', id)
   return request({
-    url: `/employee/status/${id}`,
-    method: 'put'
+    url: `/employee/status/${params}`,
+    method: 'post',
+    params: { id }
   })
 }
 

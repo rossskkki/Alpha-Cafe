@@ -15,11 +15,10 @@ const form = reactive({
   name: '',
   username: '',
   phone: '',
-  age: '',
-  gender: '',
-  pic: '',
+  sex: '',
+  idNumber: ''
 })
-const genders = [
+const sex = [
   {
     value: 1,
     label: '男',
@@ -67,11 +66,11 @@ const rules = {
     { required: true, trigger: 'blur', message: '不能为空' },
     { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: 'blur' }
   ],
-  age: [
-    { required: true, trigger: 'blur', message: '不能为空' },
-    { validator: checkAge, trigger: 'blur'}
-  ],
-  gender: [
+  // age: [
+  //   { required: true, trigger: 'blur', message: '不能为空' },
+  //   { validator: checkAge, trigger: 'blur'}
+  // ],
+  sex: [
     { required: true, trigger: 'blur', message: '不能为空' },
   ],
 }
@@ -82,38 +81,38 @@ const rules = {
 const router = useRouter()
 const route = useRoute()
 
-// 选择图片->点击事件->让选择框出现
-const chooseImg = () => {
-  // 模拟点击input框的行为，通过点击按钮触发另一个input框的事件，移花接木
-  // 否则直接调用input框，其样式不太好改    input框中有个inputRef1属性，让inputRef1去click模拟点击行为
-  if (inputRef1.value) {
-    inputRef1.value.click() // 当input框的type是file时，click()方法会触发选择文件的对话框(弹出文件管理器)
-  }
-}
+// // 选择图片->点击事件->让选择框出现
+// const chooseImg = () => {
+//   // 模拟点击input框的行为，通过点击按钮触发另一个input框的事件，移花接木
+//   // 否则直接调用input框，其样式不太好改    input框中有个inputRef1属性，让inputRef1去click模拟点击行为
+//   if (inputRef1.value) {
+//     inputRef1.value.click() // 当input框的type是file时，click()方法会触发选择文件的对话框(弹出文件管理器)
+//   }
+// }
 
-// 在文件管理器中选择图片后触发的改变事件：预览
-const onFileChange1 = (e: Event) => {
-  // 获取用户选择的文件列表（伪数组）
-  console.log(e)
-  const target = e.target as HTMLInputElement
-  const files = target.files;
-  if (files && files.length > 0) {
-    // 选择了图片
-    console.log(files[0])
-    // 文件 -> base64字符串  (可以发给后台)
-    // 1. 创建 FileReader 对象
-    const fr = new FileReader()
-    // 2. 调用 readAsDataURL 函数，读取文件内容
-    fr.readAsDataURL(files[0])
-    // 3. 监听 fr 的 onload 事件，文件转为base64字符串成功后会触发该事件
-    fr.onload = () => {
-      // 4. 通过 e.target.result 获取到读取的结果，值是字符串（base64 格式的字符串）
-      form.pic = fr.result as string
-      console.log('avatar')
-      console.log(form.pic)
-    }
-  }
-}
+// // 在文件管理器中选择图片后触发的改变事件：预览
+// const onFileChange1 = (e: Event) => {
+//   // 获取用户选择的文件列表（伪数组）
+//   console.log(e)
+//   const target = e.target as HTMLInputElement
+//   const files = target.files;
+//   if (files && files.length > 0) {
+//     // 选择了图片
+//     console.log(files[0])
+//     // 文件 -> base64字符串  (可以发给后台)
+//     // 1. 创建 FileReader 对象
+//     const fr = new FileReader()
+//     // 2. 调用 readAsDataURL 函数，读取文件内容
+//     fr.readAsDataURL(files[0])
+//     // 3. 监听 fr 的 onload 事件，文件转为base64字符串成功后会触发该事件
+//     fr.onload = () => {
+//       // 4. 通过 e.target.result 获取到读取的结果，值是字符串（base64 格式的字符串）
+//       form.pic = fr.result as string
+//       console.log('avatar')
+//       console.log(form.pic)
+//     }
+//   }
+// }
 
 // 修改员工信息后提交（只有管理员才能对其他员工进行修改，否则普通员工只能对自己进行修改）
 const submit = async () => {
@@ -168,11 +167,10 @@ const init = async () => {
     id.value = route.query.id || 0
     form.id = id.value
     let employee = await getEmployeeByIdAPI(id.value)
-    // 真服了，下面这种常规写法丢失响应式！因为对象重新赋值会分配新的引用地址，其指向的对象是新对象，因此丢失响应式！
-    // form = song.data.data
-    // 重新赋值，不改变引用的写法
     console.log(employee)
     Object.assign(form, employee.data.data)
+    // 将性别值转换为对应的标签值
+    form.sex = form.sex === '1' ? '男' : '女'
     console.log(form)
   } else {
     console.log('没有id')
@@ -196,15 +194,15 @@ init()
       <el-form-item label="电话" :label-width="formLabelWidth" prop="phone">
         <el-input v-model="form.phone" autocomplete="off" />
       </el-form-item>
-      <el-form-item label="年龄" :label-width="formLabelWidth" prop="age">
+      <!-- <el-form-item label="年龄" :label-width="formLabelWidth" prop="age">
         <el-input v-model="form.age" autocomplete="off" />
-      </el-form-item>
-      <el-form-item label="性别" :label-width="formLabelWidth" prop="gender">
-        <el-select clearable v-model="form.gender" placeholder="选择分类类型">
-          <el-option v-for="item in genders" :key="item.value" :label="item.label" :value="item.value" />
+      </el-form-item> -->
+      <el-form-item label="性别" :label-width="formLabelWidth" prop="sex">
+        <el-select clearable v-model="form.sex" placeholder="选择分类类型">
+          <el-option v-for="item in sex" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
       </el-form-item>
-      <el-form-item label="头像" :label-width="formLabelWidth" prop="pic">
+      <!-- <el-form-item label="头像" :label-width="formLabelWidth" prop="pic">
         <img class="the_img" v-if="!form.pic" src="/src/assets/image/user_default.png" alt="" />
         <img class="the_img" v-else :src="form.pic" alt="" />
         <input type="file" accept="image/*" style="display: none" ref="inputRef1" @change="onFileChange1" />
@@ -214,7 +212,7 @@ init()
           </el-icon>
           选择图片
         </el-button>
-      </el-form-item>
+      </el-form-item> -->
     </el-form>
     <el-form-item class="btn_box">
       <el-button class="submit_btn" type="success" @click="submit">修改</el-button>

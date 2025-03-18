@@ -38,7 +38,7 @@ const form = reactive({
   name: '',
   pic: '',
   setmealDishes: [] as SetmealDish[],
-  detail: '',
+  description: '',
   price: 0,
   status: '',
   categoryId: ''
@@ -55,7 +55,7 @@ const rules = {
   setmealDishes: [
     { required: true, trigger: 'blur', message: '不能为空' },
   ],
-  detail: [
+  description: [
     { required: true, trigger: 'blur', message: '不能为空' },
   ],
   price: [
@@ -235,7 +235,7 @@ const submit = async (keep: any) => {
         form.name = ''
         form.pic = ''
         form.setmealDishes = []
-        form.detail = ''
+        form.description = ''
         form.price = 0
         form.status = ''
         form.categoryId = ''
@@ -343,8 +343,8 @@ const submit = async (keep: any) => {
           </div>
         </div>
       </el-form-item>
-      <el-form-item label="详情" :label-width="formLabelWidth" prop="detail">
-        <el-input v-model="form.detail" autocomplete="off" type="textarea" />
+      <el-form-item label="详情" :label-width="formLabelWidth" prop="description">
+        <el-input v-model="form.description" autocomplete="off" type="textarea" />
       </el-form-item>
       <el-form-item label="价格" :label-width="formLabelWidth" prop="price">
         <el-input v-model="form.price" autocomplete="off" />

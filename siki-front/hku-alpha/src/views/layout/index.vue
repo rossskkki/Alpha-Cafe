@@ -164,7 +164,7 @@ const fixPwd = async () => {
 const quitFn = () => {
   // 为了让用户体验更好，来个确认提示框
   ElMessageBox.confirm(
-    '走了，爱是会消失的吗?',
+    '确定离开吗?',
     '退出登录',
     {
       confirmButtonText: 'OK',
@@ -317,7 +317,9 @@ onBeforeUnmount(() => {
     </el-dialog>
     <el-container>
       <el-header>
-        <img src="E:\work\Java project\HKU-Alpha-Cafe\siki-front\hku-alpha\src\assets\image\logo4.png" class="logo" />
+        <a href="/dashboard" class="logo-link">
+        <img src="E:\work\Java project\HKU-Alpha-Cafe\siki-front\hku-alpha\src\assets\image\logo4.png" class="logo"/>
+        </a>
         <el-icon class="icon1" v-if="isCollapse">
           <Expand @click.stop="isCollapse = !isCollapse" />
         </el-icon>
@@ -381,6 +383,7 @@ onBeforeUnmount(() => {
 }
 
 .el-header {
+  position: relative;
   background-color: #f9c89b;
   color: #2e383f;
   line-height: 60px;
@@ -395,6 +398,7 @@ onBeforeUnmount(() => {
   .icon1 {
     position: absolute;
     top: 18px;
+    left: 200px;
     margin: 5px 10px 0 0;
   }
 
@@ -407,6 +411,9 @@ onBeforeUnmount(() => {
     padding: 0 10px;
     border-radius: 5px;
     color: #2e383f;
+    position: absolute;
+    left: 200px;
+    top: 0;
   }
 
   .status-open {
@@ -477,7 +484,7 @@ a {
   text-decoration: none;
 }
 
-a:hover {
+a:not(.logo-link):hover {
   background-color: #445566;
   color: #eee;
 }
@@ -586,4 +593,16 @@ a:hover {
 .el-menu--collapse {
   width: 85px;
 }
+
+.logo-link {
+  display: block;
+  position:absolute;
+  top: 0;
+  left: 0;
+  margin: 0px 0px;
+  width: 200px;
+  height: 70px;
+}
+
+
 </style>

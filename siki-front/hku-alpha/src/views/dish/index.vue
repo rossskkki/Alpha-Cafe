@@ -11,8 +11,8 @@ import { useRouter } from 'vue-router'
 interface dish {
   id: number
   name: string
-  pic: string
-  detail: string
+  image: string
+  description: string
   price: number
   status: string
   categoryId: number
@@ -201,13 +201,13 @@ const deleteBatch = (row?: any) => {
       <el-table-column type="selection" width="55" />
       <!-- <el-table-column prop="id" label="id" /> -->
       <el-table-column prop="name" label="菜名" align="center" />
-      <el-table-column prop="pic" label="图片" align="center">
+      <el-table-column prop="image" label="图片" align="center">
         <template #default="scope">
-          <img v-if="scope.row.pic" :src="scope.row.pic" alt="" />
+          <img v-if="scope.row.image" :src="scope.row.image" alt="" />
           <img v-else src="/src/assets/image/user_default.png" alt="" />
         </template>
       </el-table-column>
-      <el-table-column prop="detail" label="详情" width="200px" align="center" />
+      <el-table-column prop="description" label="详情" width="200px" align="center" />
       <el-table-column prop="price" label="价格" align="center" />
       <el-table-column prop="status" label="状态" align="center">
         <template #default="scope">

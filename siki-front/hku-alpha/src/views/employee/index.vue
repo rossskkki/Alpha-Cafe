@@ -12,9 +12,9 @@ interface employee {
   name: string
   username: string
   phone: string
-  age: number
-  gender: string
-  pic: string
+  // age: number
+  // gender: string
+  // pic: string
   status: string
   updateTime: string
 }
@@ -75,8 +75,8 @@ const update_btn = (row: any) => {
 const change_btn = async (row: any) => {
   console.log('要修改的行数据')
   console.log(row)
-  // const status = row.status === 1 ? 0 : 1
-  await updateEmployeeStatusAPI(row.id)
+  const status = row.status === 1 ? 0 : 1
+  await updateEmployeeStatusAPI(row.id, status)
   // 修改后刷新页面，更新数据
   init()
   ElMessage({
@@ -134,14 +134,19 @@ const delete_btn = (row: any) => {
       <el-table-column prop="name" label="姓名" align="center" />
       <el-table-column prop="username" label="账号" align="center" />
       <el-table-column prop="phone" label="手机号" width="120px" align="center" />
-      <el-table-column prop="age" label="年龄" align="center" />
-      <el-table-column prop="gender" label="性别" align="center" />
-      <el-table-column prop="pic" label="头像" align="center">
+      <!-- <el-table-column prop="age" label="年龄" align="center" /> -->
+      <el-table-column prop="sex" label="性别" align="center" :formatter="(row) => (row.sex === '1' ? '男' : '女')" />
+      <el-table-column prop="idNumber" label="身份证号" align="center">
         <template #default="scope">
+          <span style="white-space: nowrap;">{{ scope.row.idNumber }}</span>
+        </template>
+      </el-table-column>
+      <!-- <el-table-column prop="pic" label="头像" align="center"> -->
+        <!-- <template #default="scope">
           <img v-if="scope.row.pic" :src="scope.row.pic" alt="" />
           <img v-else src="/src/assets/image/user_default.png" alt="" />
         </template>
-      </el-table-column>
+      </el-table-column> -->
       <el-table-column prop="status" label="状态" align="center">
         <template #default="scope">
           <el-tag :type="scope.row.status === 1 ? 'success' : 'danger'" round>
@@ -154,15 +159,15 @@ const delete_btn = (row: any) => {
         <!-- scope 的父组件是 el-table -->
         <template #default="scope">
           <!-- <el-button @click="update_btn(scope.row)" type="primary">修改</el-button> -->
-          <el-button @click="update_btn(scope.row)" type="primary" :disabled="userInfoStore.userInfo?.username !== 'cyh'
+          <el-button @click="update_btn(scope.row)" type="primary" :disabled="userInfoStore.userInfo?.id !== 1
             && userInfoStore.userInfo?.username !== scope.row.username ? true : false">修改
           </el-button>
           <el-button @click="change_btn(scope.row)" plain :type="scope.row.status === 1 ? 'danger' : 'primary'"
-            :disabled="userInfoStore.userInfo?.username !== 'cyh' ? true : false">
+            :disabled="userInfoStore.userInfo?.id !== 1 ? true : false">
             {{ scope.row.status === 1 ? '禁用' : '启用' }}
           </el-button>
           <el-button @click="delete_btn(scope.row)" type="danger"
-            :disabled="userInfoStore.userInfo?.username !== 'cyh' ? true : false">删除
+            :disabled="userInfoStore.userInfo?.id !== 1 ? true : false">删除
           </el-button>
         </template>
       </el-table-column>

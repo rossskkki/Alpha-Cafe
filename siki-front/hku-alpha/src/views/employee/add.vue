@@ -10,13 +10,14 @@ const form = reactive({
   id: 0,
   name: '',
   username: '',
-  password: '',
+  // password: '',
   phone: '',
-  age: '',
-  gender: '',
-  pic: '',
+  // age: '',
+  sex: '',
+  // pic: '',
+  idNumber: ''
 })
-const genders = [
+const sex = [
   {
     value: 1,
     label: '男',
@@ -30,22 +31,22 @@ const inputRef1 = ref<HTMLInputElement | null>(null)
 const addRef = ref()
 
 // 表单校验
-const checkAge = (rule: any, value: string, callback: (error?: Error) => void) => {
-  if (value === '' || value === undefined) {
-    callback(new Error('请输入年龄'));
-  } else if (!/^\d+$/.test(value)) {
-    callback(new Error('年龄必须为数字'));
-  } else {
-    const age = parseInt(value);
-    if (age < 3) {
-      callback(new Error('年龄不能小于3岁'));
-    } else if (age > 99) {
-      callback(new Error('年龄不能大于99岁'));
-    } else {
-      callback();
-    }
-  }
-}
+// const checkAge = (rule: any, value: string, callback: (error?: Error) => void) => {
+//   if (value === '' || value === undefined) {
+//     callback(new Error('请输入年龄'));
+//   } else if (!/^\d+$/.test(value)) {
+//     callback(new Error('年龄必须为数字'));
+//   } else {
+//     const age = parseInt(value);
+//     if (age < 3) {
+//       callback(new Error('年龄不能小于3岁'));
+//     } else if (age > 99) {
+//       callback(new Error('年龄不能大于99岁'));
+//     } else {
+//       callback();
+//     }
+//   }
+// }
 const rules = {
   name: [
     { required: true, trigger: 'blur', message: '不能为空' },
@@ -56,21 +57,25 @@ const rules = {
     { required: true, trigger: 'blur', message: '不能为空' },
     { pattern: /^[a-zA-Z0-9]{1,10}$/, message: '用户名必须是1-10的字母数字', trigger: 'blur' }
   ],
-  password: [
-    { required: true, trigger: 'blur', message: '不能为空' },
-    { pattern: /^\S{6,15}$/, message: '密码必须是6-15的非空字符', trigger: 'blur' }
-  ],
+  // password: [
+  //   { required: true, trigger: 'blur', message: '不能为空' },
+  //   { pattern: /^\S{6,15}$/, message: '密码必须是6-15的非空字符', trigger: 'blur' }
+  // ],
   phone: [
     { required: true, trigger: 'blur', message: '不能为空' },
     { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: 'blur' }
   ],
-  age: [
+  // age: [
+  //   { required: true, trigger: 'blur', message: '不能为空' },
+  //   { validator: checkAge, trigger: 'blur' }
+  // ],
+  sex: [
     { required: true, trigger: 'blur', message: '不能为空' },
-    { validator: checkAge, trigger: 'blur' }
   ],
-  gender: [
+  idNumber: [
     { required: true, trigger: 'blur', message: '不能为空' },
-  ],
+    { pattern: /^[1-9]\d{5}(18|19|20)\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\d{3}[\dXx]$/, message: '身份证号格式不正确', trigger: 'blur' }
+  ]
 }
 
 
@@ -79,38 +84,38 @@ const rules = {
 const router = useRouter()
 const route = useRoute()
 
-// 选择图片->点击事件->让选择框出现
-const chooseImg = () => {
-  // 模拟点击input框的行为，通过点击按钮触发另一个input框的事件，移花接木
-  // 否则直接调用input框，其样式不太好改    input框中有个inputRef1属性，让inputRef1去click模拟点击行为
-  if (inputRef1.value) {
-    inputRef1.value.click() // 当input框的type是file时，click()方法会触发选择文件的对话框(弹出文件管理器)
-  }
-}
+// // 选择图片->点击事件->让选择框出现
+// const chooseImg = () => {
+//   // 模拟点击input框的行为，通过点击按钮触发另一个input框的事件，移花接木
+//   // 否则直接调用input框，其样式不太好改    input框中有个inputRef1属性，让inputRef1去click模拟点击行为
+//   if (inputRef1.value) {
+//     inputRef1.value.click() // 当input框的type是file时，click()方法会触发选择文件的对话框(弹出文件管理器)
+//   }
+// }
 
-// 在文件管理器中选择图片后触发的改变事件：预览
-const onFileChange1 = (e: Event) => {
-  // 获取用户选择的文件列表（伪数组）
-  console.log(e)
-  const target = e.target as HTMLInputElement
-  const files = target.files;
-  if (files && files.length > 0) {
-    // 选择了图片
-    console.log(files[0])
-    // 文件 -> base64字符串  (可以发给后台)
-    // 1. 创建 FileReader 对象
-    const fr = new FileReader()
-    // 2. 调用 readAsDataURL 函数，读取文件内容
-    fr.readAsDataURL(files[0])
-    // 3. 监听 fr 的 onload 事件，文件转为base64字符串成功后会触发该事件
-    fr.onload = () => {
-      // 4. 通过 e.target.result 获取到读取的结果，值是字符串（base64 格式的字符串）
-      form.pic = fr.result as string
-      console.log('avatar')
-      console.log(form.pic)
-    }
-  }
-}
+// // 在文件管理器中选择图片后触发的改变事件：预览
+// const onFileChange1 = (e: Event) => {
+//   // 获取用户选择的文件列表（伪数组）
+//   console.log(e)
+//   const target = e.target as HTMLInputElement
+//   const files = target.files;
+//   if (files && files.length > 0) {
+//     // 选择了图片
+//     console.log(files[0])
+//     // 文件 -> base64字符串  (可以发给后台)
+//     // 1. 创建 FileReader 对象
+//     const fr = new FileReader()
+//     // 2. 调用 readAsDataURL 函数，读取文件内容
+//     fr.readAsDataURL(files[0])
+//     // 3. 监听 fr 的 onload 事件，文件转为base64字符串成功后会触发该事件
+//     fr.onload = () => {
+//       // 4. 通过 e.target.result 获取到读取的结果，值是字符串（base64 格式的字符串）
+//       form.pic = fr.result as string
+//       console.log('avatar')
+//       console.log(form.pic)
+//     }
+//   }
+// }
 
 // 添加员工信息后提交（只有管理员才能对其他员工进行修改，否则普通员工只能对自己进行修改）
 const submit = async () => {
@@ -149,7 +154,10 @@ const cancel = () => {
 }
 
 const init = async () => {
-  console.log(route.query)
+  console.log(route.query) // 从路由参数中获取数据
+  // 如果需要从后台获取数据，可以在这里调用 API 并将返回的数据填充到 form 中
+  // const res = await getEmployeeDetailsAPI(route.query.id)
+  // Object.assign(form, res.data)
 }
 
 init()
@@ -165,22 +173,25 @@ init()
       <el-form-item label="账号" :label-width="formLabelWidth" prop="username">
         <el-input v-model="form.username" autocomplete="off" />
       </el-form-item>
-      <el-form-item label="密码" :label-width="formLabelWidth" prop="password">
+      <!-- <el-form-item label="密码" :label-width="formLabelWidth" prop="password">
         <el-input v-model="form.password" autocomplete="off" />
-      </el-form-item>
+      </el-form-item> -->
       <el-form-item label="电话" :label-width="formLabelWidth" prop="phone">
         <el-input v-model="form.phone" autocomplete="off" />
       </el-form-item>
-      <el-form-item label="年龄" :label-width="formLabelWidth" prop="age">
+      <!-- <el-form-item label="年龄" :label-width="formLabelWidth" prop="age">
         <el-input v-model="form.age" autocomplete="off" />
-      </el-form-item>
+      </el-form-item> -->
       <el-form-item label="性别" :label-width="formLabelWidth" prop="gender">
-        <el-select clearable v-model="form.gender" placeholder="选择分类类型">
-          <el-option v-for="item in genders" :key="item.value" :label="item.label" :value="item.value" />
+        <el-select clearable v-model="form.sex" placeholder="选择分类类型">
+          <el-option v-for="item in sex" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
         <!-- <el-input v-model="form.gender" autocomplete="off" /> -->
       </el-form-item>
-      <el-form-item label="头像" :label-width="formLabelWidth" prop="pic">
+      <el-form-item label="身份证号" :label-width="formLabelWidth" prop="idNumber">
+        <el-input v-model="form.idNumber" autocomplete="off" />
+      </el-form-item>
+      <!-- <el-form-item label="头像" :label-width="formLabelWidth" prop="pic">
         <img class="the_img" v-if="!form.pic" src="/src/assets/image/user_default.png" alt="" />
         <img class="the_img" v-else :src="form.pic" alt="" />
         <input type="file" accept="image/*" style="display: none" ref="inputRef1" @change="onFileChange1" />
@@ -190,7 +201,7 @@ init()
           </el-icon>
           选择图片
         </el-button>
-      </el-form-item>
+      </el-form-item> -->
     </el-form>
     <el-form-item>
       <el-button class="submit_btn" type="success" @click="submit">添加</el-button>
@@ -228,5 +239,9 @@ img {
   width: 100px;
   height: 40px;
   margin: 30px 0 0 200px;
+}
+
+.el-form-item {
+  white-space: nowrap; // 防止换行
 }
 </style>
