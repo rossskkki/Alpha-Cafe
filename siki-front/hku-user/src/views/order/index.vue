@@ -1,0 +1,244 @@
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { getOrderListAPI } from '@/api/order'
+import { ElMessage } from 'element-plus'
+
+// 订单状态
+const orderStatus = {
+  1: '待付款',
+  2: '待接单',
+  3: '待派送',
+  4: '派送中',
+  5: '已完成',
+  6: '已取消'
+}
+
+// 订单列表数据
+const orderList = ref([])
+// 分页参数
+const page = ref(1)
+const pageSize = ref(10)
+const total = ref(0)
+const loading = ref(false)
+
+// 路由实例
+const router = useRouter()
+
+// 获取订单列表
+const getOrderList = async () => {
+  loading.value = true
+  try {
+    const res = await getOrderListAPI({
+      page: page.value,
+      pageSize: pageSize.value
+    })
+    orderList.value = res.data.records
+    total.value = res.data.total
+  } catch (error) {
+    ElMessage.error('获取订单列表失败')
+    console.error(error)
+  } finally {
+    loading.value = false
+  }
+}
+
+// 查看订单详情
+const viewOrderDetail = (id: string) => {
+  router.push(`/order/detail/${id}`)
+}
+
+// 页码变化
+const handleCurrentChange = (val: number) => {
+  page.value = val
+  getOrderList()
+}
+
+// 页容量变化
+const handleSizeChange = (val: number) => {
+  pageSize.value = val
+  page.value = 1
+  getOrderList()
+}
+
+// 格式化时间
+const formatDate = (dateStr: string) => {
+  if (!dateStr) return ''
+  const date = new Date(dateStr)
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
+}
+
+// 组件挂载时获取订单列表
+onMounted(() => {
+  getOrderList()
+})
+</script>
+
+<template>
+  <div class="order-container">
+    <h2 class="page-title">我的订单</h2>
+    
+    <div v-if="orderList.length === 0 && !loading" class="empty-order">
+      <el-empty description="暂无订单数据" />
+    </div>
+    
+    <el-card v-else v-loading="loading" class="order-list">
+      <div v-for="order in orderList" :key="order.id" class="order-item">
+        <div class="order-header">
+          <span class="order-number">订单号: {{ order.number }}</span>
+          <span class="order-status" :class="`status-${order.status}`">{{ orderStatus[order.status] }}</span>
+        </div>
+        
+        <div class="order-content">
+          <div class="order-dishes">
+            <div v-for="(item, index) in order.orderDetails" :key="index" class="dish-item">
+              <span class="dish-name">{{ item.name }}</span>
+              <span class="dish-count">x{{ item.number }}</span>
+            </div>
+          </div>
+          
+          <div class="order-info">
+            <p>下单时间: {{ formatDate(order.orderTime) }}</p>
+            <p>收货地址: {{ order.address }}</p>
+            <p>联系电话: {{ order.phone }}</p>
+            <p class="order-amount">实付金额: <span>¥{{ order.amount }}</span></p>
+          </div>
+        </div>
+        
+        <div class="order-footer">
+          <el-button type="primary" size="small" @click="viewOrderDetail(order.id)">查看详情</el-button>
+        </div>
+      </div>
+      
+      <div class="pagination-container">
+        <el-pagination
+          v-model:current-page="page"
+          v-model:page-size="pageSize"
+          :page-sizes="[5, 10, 20, 50]"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="total"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        />
+      </div>
+    </el-card>
+  </div>
+</template>
+
+<style scoped>
+.order-container {
+  padding: 20px;
+}
+
+.page-title {
+  margin-bottom: 20px;
+  font-size: 24px;
+  color: #333;
+}
+
+.empty-order {
+  margin-top: 50px;
+}
+
+.order-list {
+  margin-bottom: 20px;
+}
+
+.order-item {
+  border-bottom: 1px solid #eee;
+  padding: 15px 0;
+}
+
+.order-item:last-child {
+  border-bottom: none;
+}
+
+.order-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.order-number {
+  font-weight: bold;
+  color: #666;
+}
+
+.order-status {
+  font-weight: bold;
+}
+
+.status-1 {
+  color: #e6a23c;
+}
+
+.status-2 {
+  color: #409eff;
+}
+
+.status-3 {
+  color: #409eff;
+}
+
+.status-4 {
+  color: #409eff;
+}
+
+.status-5 {
+  color: #67c23a;
+}
+
+.status-6 {
+  color: #f56c6c;
+}
+
+.order-content {
+  display: flex;
+  margin-bottom: 15px;
+}
+
+.order-dishes {
+  flex: 1;
+}
+
+.dish-item {
+  margin-bottom: 5px;
+}
+
+.dish-name {
+  margin-right: 10px;
+}
+
+.dish-count {
+  color: #999;
+}
+
+.order-info {
+  flex: 1;
+  color: #666;
+}
+
+.order-info p {
+  margin: 5px 0;
+}
+
+.order-amount {
+  font-weight: bold;
+}
+
+.order-amount span {
+  color: #f56c6c;
+  font-size: 16px;
+}
+
+.order-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.pagination-container {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
+</style>
