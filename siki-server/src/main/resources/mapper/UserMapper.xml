@@ -4,8 +4,8 @@
 <mapper namespace="com.siki.mapper.UserMapper">
 
     <insert id="insertUser" useGeneratedKeys="true" keyProperty="id">
-        insert into user (openid, name, phone, sex, id_number, avatar, create_time)
-        values (#{openid},#{name},#{phone}, #{sex}, #{idNumber}, #{avatar}, #{createTime})
+        insert into user (id, phone, password, nick_name, icon, create_time,update_time)
+        values (#{id}, #{phone}, #{password}, #{nickName}, #{icon}, #{createTime}, #{updateTime})
     </insert>
 
     <select id="countNewUserByMap" resultType="java.lang.Integer">

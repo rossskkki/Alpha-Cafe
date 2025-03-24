@@ -18,6 +18,13 @@ export const useUserStore = defineStore('user', {
     setUserInfo(user: UserInfo) {
       this.userInfo = user
     },
+    // 从 localStorage 恢复用户信息
+    initUserInfo() {
+      const userInfo = localStorage.getItem('userInfo')
+      if (userInfo) {
+        this.userInfo = JSON.parse(userInfo)
+      }
+    },
     // 清除用户信息
     clearUserInfo() {
       this.userInfo = null

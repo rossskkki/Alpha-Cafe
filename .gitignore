@@ -31,3 +31,4 @@ build/
 
 ### VS Code ###
 .vscode/
+/siki-front/hku-user/node_modules/

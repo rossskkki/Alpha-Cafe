@@ -14,9 +14,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.http.HttpSession;
 
 @RestController
 @RequestMapping("/user/user")
@@ -25,18 +29,30 @@ import java.util.HashMap;
 public class UserController {
 
     @Autowired
-    private UserService userService;
-
-    @Autowired
     private JwtProperties jwtProperties;
 
-    @ApiOperation("微信登录")
-    @PostMapping("/login")
-    public Result<UserLoginVO> login(@RequestBody UserLoginDTO userLoginDTO) {
-        log.info("微信登录:{}", userLoginDTO.getCode());
-        //微信登录
-        User user = userService.wxLogin(userLoginDTO);
+    @Autowired
+    private UserService userService;
 
+    /**
+     * 发送手机验证码
+     */
+    @PostMapping("sms")
+    public Result sendCode(@RequestBody Map<String, String> params, HttpSession session) {
+        String phone = params.get("phone");
+        //发送短信验证码并保存验证码
+        return userService.sendCode(phone, session);
+    }
+
+    /**
+     * 登录功能
+     * @param loginForm 登录参数，包含手机号、验证码；或者手机号、密码
+     */
+    @PostMapping("/login")
+    public Result login(@RequestBody UserLoginDTO loginForm, HttpSession session){
+        //实现登录功能
+        User user = userService.login(loginForm, session);
+        //生成token
         //生成jwt令牌
         HashMap<String, Object> claims = new HashMap<>();
         claims.put(JwtClaimsConstant.USER_ID, user.getId());
@@ -44,7 +60,7 @@ public class UserController {
 
         UserLoginVO userLoginVO = UserLoginVO.builder()
                 .id(user.getId())
-                .openid(user.getOpenid())
+                .phone(user.getPhone())
                 .token(token)
                 .build();
         return Result.success(userLoginVO);

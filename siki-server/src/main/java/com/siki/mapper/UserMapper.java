@@ -1,6 +1,8 @@
 package com.siki.mapper;
 
+import com.siki.annotation.AutoFill;
 import com.siki.entity.User;
+import com.siki.enumeration.OperationType;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 
@@ -9,17 +11,18 @@ import java.util.Map;
 @Mapper
 public interface UserMapper {
     /**
-     * 根据openid查询用户
-     * @param openid
+     * 根据phone查询用户
+     * @param phone
      * @return
      */
-    @Select("select * from user where openid = #{openid}")
-    User getUserByOpenid(String openid);
+    @Select("select * from user where phone = #{phone}")
+    User getUserByPhone(String phone);
 
     /**
      * 新增用户
      * @param user
      */
+//    @AutoFill(value = OperationType.INSERT)
     void insertUser(User user);
 
     /**

@@ -1,13 +1,24 @@
 package com.siki.service;
 
+import javax.servlet.http.HttpSession;
+
 import com.siki.dto.UserLoginDTO;
 import com.siki.entity.User;
+import com.siki.result.Result;
 
 public interface UserService {
     /**
-     *  微信登录
-     * @param userLoginDTO
+     * 发送验证码
+     * @param phone
      * @return
      */
-    User wxLogin(UserLoginDTO userLoginDTO);
+    Result sendCode(String phone, HttpSession session);
+
+    /**
+     * 登录
+     * @param loginForm
+     * @param session
+     * @return
+     */
+    User login(UserLoginDTO loginForm, HttpSession session);
 }

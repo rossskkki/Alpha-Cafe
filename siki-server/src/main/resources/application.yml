@@ -46,7 +46,7 @@ siki:
     admin-token-name: authorization
     user-secret-key: sikihku
     user-ttl: 7200000
-    user-token-name: authentication
+    user-token-name: authorization
   alioss:
     endpoint: ${siki.alioss.endpoint}
     access-key-id: ${siki.alioss.access-key-id}
