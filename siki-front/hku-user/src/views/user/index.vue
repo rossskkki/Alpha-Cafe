@@ -2,11 +2,11 @@
   <div class="user-center-container">
     <el-card class="user-info-card">
       <div class="user-header">
-        <div class="avatar-container">
-          <el-avatar :size="80" icon="UserFilled" />
+        <div class="avatar-container" @click="showAvatarDialog = true">
+          <el-avatar :size="80" :src="userInfo?.icon" icon="UserFilled" />
         </div>
         <div class="user-basic-info">
-          <h2>{{ userInfo?.name || '未登录' }}</h2>
+          <h2>{{ userInfo?.nickName || '未登录' }}</h2>
           <p>{{ userInfo?.phone || '' }}</p>
         </div>
       </div>
@@ -63,6 +63,38 @@
         </span>
       </template>
     </el-dialog>
+  
+  <!-- 头像预览对话框 -->
+    <el-dialog
+    v-model="showAvatarDialog"
+    title="头像"
+    width="80%"
+    :close-on-click-modal="true"
+  >
+    <div class="avatar-preview-container">
+      <img :src="userInfo?.icon" alt="用户头像" class="avatar-preview" v-if="userInfo?.icon" />
+      <el-empty description="暂无头像" v-else></el-empty>
+    </div>
+    <div class="avatar-update-container">
+      <el-upload
+        class="avatar-uploader"
+        action="#"
+        :auto-upload="false"
+        :show-file-list="false"
+        :on-change="handleAvatarChange"
+        accept="image/jpeg,image/png,image/jpg,image/gif"
+      >
+        <el-button type="primary">选择图片</el-button>
+        <template #tip>
+          <div class="el-upload__tip">只能上传JPG/PNG/GIF文件，且不超过10MB</div>
+        </template>
+      </el-upload>
+      <div v-if="avatarForm.file" class="selected-file-info">
+        已选择: {{ avatarForm.file.name }}
+      </div>
+      <el-button type="success" @click="updateAvatar" :loading="updatingAvatar" :disabled="!avatarForm.file">上传头像</el-button>
+    </div>
+  </el-dialog>
   </div>
 </template>
 
@@ -71,7 +103,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useUserStore } from '@/store/user'
-import { getUserInfoAPI, updateUserInfoAPI, logoutAPI } from '@/api/user'
+import { getUserInfoAPI, updateUserInfoAPI, updateAvatarAPI, logoutAPI } from '@/api/user'
 import type { FormInstance } from 'element-plus'
 
 const router = useRouter()
@@ -87,6 +119,31 @@ const editForm = reactive({
   phone: ''
 })
 
+// 头像相关
+const showAvatarDialog = ref(false)
+const updatingAvatar = ref(false)
+const avatarForm = reactive({
+  avatarUrl: '',
+  file: null as File | null
+})
+
+// 处理头像文件选择
+const handleAvatarChange = (file: any) => {
+  // 文件大小限制：2MB
+  const isLt2M = file.size / 1024 / 1024 < 10
+  if (!isLt2M) {
+    ElMessage.error('上传头像图片大小不能超过 2MB!')
+    return
+  }
+  
+  // 设置选中的文件
+  avatarForm.file = file.raw
+  // 创建临时URL用于预览
+  if (avatarForm.file) {
+    avatarForm.avatarUrl = URL.createObjectURL(avatarForm.file)
+  }
+}
+
 // 表单验证规则
 const rules = {
   name: [
@@ -100,15 +157,15 @@ const rules = {
 }
 
 // 获取用户信息
-const getUserInfo = async () => {
-  try {
-    const res = await getUserInfoAPI()
-    userInfo.value = res.data
-    userStore.setUserInfo(res.data)
-  } catch (error) {
-    console.error('获取用户信息失败', error)
-  }
-}
+// const getUserInfo = async () => {
+//   try {
+//     const res = await getUserInfoAPI()
+//     userInfo.value = res.data
+//     userStore.setUserInfo(res.data)
+//   } catch (error) {
+//     console.error('获取用户信息失败', error)
+//   }
+// }
 
 // 打开编辑对话框
 const openEditDialog = () => {
@@ -127,8 +184,9 @@ const updateUserInfo = async () => {
       try {
         await updateUserInfoAPI(editForm)
         ElMessage.success('个人信息修改成功')
+        
         showEditDialog.value = false
-        getUserInfo() // 刷新用户信息
+        // getUserInfo() // 刷新用户信息
       } catch (error) {
         ElMessage.error('修改个人信息失败')
         console.error(error)
@@ -137,6 +195,36 @@ const updateUserInfo = async () => {
       }
     }
   })
+}
+
+// 更新用户头像
+const updateAvatar = async () => {
+  if (!avatarForm.file) {
+    ElMessage.warning('请选择头像图片')
+    return
+  }
+  
+  updatingAvatar.value = true
+  try {
+    // 创建FormData对象用于文件上传
+    const formData = new FormData()
+    formData.append('file', avatarForm.file)
+    
+    // 调用API上传头像
+    const res = await updateAvatarAPI(formData)
+    userStore.updateIcon(res.data.data)
+    ElMessage.success('头像更新成功')
+    showAvatarDialog.value = false
+    // getUserInfo() // 刷新用户信息
+    
+    // 清空选择的文件
+    avatarForm.file = null
+  } catch (error) {
+    ElMessage.error('头像更新失败')
+    console.error(error)
+  } finally {
+    updatingAvatar.value = false
+  }
 }
 
 // 退出登录
@@ -148,7 +236,7 @@ const handleLogout = async () => {
       type: 'warning'
     })
     
-    await logoutAPI()
+    // await logoutAPI()
     userStore.clearUserInfo()
     localStorage.removeItem('userInfo')
     ElMessage.success('退出登录成功')
@@ -160,12 +248,12 @@ const handleLogout = async () => {
   }
 }
 
-onMounted(() => {
-  // 如果已登录，获取最新的用户信息
-  if (userInfo.value) {
-    getUserInfo()
-  }
-})
+// onMounted(() => {
+//   // 如果已登录，获取最新的用户信息
+//   if (userInfo.value) {
+//     getUserInfo()
+//   }
+// })
 </script>
 
 <style scoped>
@@ -241,5 +329,42 @@ onMounted(() => {
 
 .logout span {
   color: #F56C6C;
+}
+
+.avatar-container {
+  cursor: pointer;
+}
+
+.avatar-preview-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.avatar-preview {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: 8px;
+}
+
+.avatar-update-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 20px;
+  align-items: center;
+}
+
+.avatar-uploader {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.selected-file-info {
+  margin-top: 10px;
+  color: #67c23a;
+  font-size: 14px;
 }
 </style>

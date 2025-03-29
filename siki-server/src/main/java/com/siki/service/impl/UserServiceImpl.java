@@ -14,6 +14,7 @@ import com.siki.properties.WeChatProperties;
 import com.siki.result.Result;
 import com.siki.utils.HttpClientUtil;
 import com.siki.utils.RegexUtils;
+import com.siki.vo.UserLoginVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.RandomStringUtils;
 import org.springframework.beans.BeanUtils;
@@ -149,6 +150,15 @@ public class UserServiceImpl implements com.siki.service.UserService {
 //        redisTemplate.expire(LOGIN_USER_KEY + token, LOGIN_USER_TTL, TimeUnit.MINUTES);
 //        //返回token
         return user;
+    }
+
+    @Override
+    public void updateIcon(Long userId, String filepath) {
+        User user = userMapper.getUserById(userId);
+        user.setIcon(filepath);
+        userMapper.updateUser(user);
+        UserLoginVO userLoginVO = new UserLoginVO();
+        BeanUtils.copyProperties(user, userLoginVO);
     }
 
     private User createUserWithPhone(String phone) {

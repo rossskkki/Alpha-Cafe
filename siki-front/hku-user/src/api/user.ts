@@ -51,12 +51,28 @@ export const updateUserInfoAPI = (params: any) => {
 }
 
 /**
+ * 更新用户头像
+ * @param formData 包含头像文件的FormData对象
+ * @returns 
+ */
+export const updateAvatarAPI = (formData: FormData) => {
+  return request({
+    url: '/user/uploadIcon',
+    method: 'post',
+    data: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+
+/**
  * 用户登出
  * @returns 
  */
-export const logoutAPI = () => {
-  return request({
-    url: '/user/logout',
-    method: 'post'
-  })
-}
+// export const logoutAPI = () => {
+//   return request({
+//     url: '/user/logout',
+//     method: 'post'
+//   })
+// }

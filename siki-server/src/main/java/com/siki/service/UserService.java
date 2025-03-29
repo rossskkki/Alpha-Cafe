@@ -5,6 +5,7 @@ import javax.servlet.http.HttpSession;
 import com.siki.dto.UserLoginDTO;
 import com.siki.entity.User;
 import com.siki.result.Result;
+import com.siki.vo.UserLoginVO;
 
 public interface UserService {
     /**
@@ -21,4 +22,6 @@ public interface UserService {
      * @return
      */
     User login(UserLoginDTO loginForm, HttpSession session);
+
+    void updateIcon(Long userId, String filepath);
 }

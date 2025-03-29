@@ -1,11 +1,14 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import { updateUserInfoAPI } from '../api/user'
 
 export interface UserInfo {
   id: number
   name: string
   phone: string
   token: string
+  avatar?: string
+  nickName?: string
 }
 
 export const useUserStore = defineStore('user', {
@@ -14,6 +17,11 @@ export const useUserStore = defineStore('user', {
     return { userInfo }
   },
   actions: {
+    // 更新用户信息
+    updateIcon(user: UserInfo) {
+     this.userInfo.icon = user
+    },
+
     // 设置用户信息
     setUserInfo(user: UserInfo) {
       this.userInfo = user

@@ -1,11 +1,14 @@
 package com.siki.controller.user;
 
 import com.siki.constant.JwtClaimsConstant;
+import com.siki.constant.MessageConstant;
+import com.siki.context.BaseContext;
 import com.siki.dto.UserLoginDTO;
 import com.siki.entity.User;
 import com.siki.properties.JwtProperties;
 import com.siki.result.Result;
 import com.siki.service.UserService;
+import com.siki.utils.AliOssUtil;
 import com.siki.utils.JwtUtil;
 import com.siki.vo.UserLoginVO;
 import io.swagger.annotations.ApiOperation;
@@ -16,9 +19,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.servlet.http.HttpSession;
 
@@ -33,6 +39,9 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private AliOssUtil aliOssUtil;
 
     /**
      * 发送手机验证码
@@ -57,12 +66,38 @@ public class UserController {
         HashMap<String, Object> claims = new HashMap<>();
         claims.put(JwtClaimsConstant.USER_ID, user.getId());
         String token = JwtUtil.createJWT(jwtProperties.getUserSecretKey(), jwtProperties.getUserTtl(), claims);
-
         UserLoginVO userLoginVO = UserLoginVO.builder()
                 .id(user.getId())
+                .nickName(user.getNickName())
                 .phone(user.getPhone())
+                .icon(user.getIcon())
                 .token(token)
                 .build();
         return Result.success(userLoginVO);
+    }
+
+    /**
+     * 上传头像
+     * @return 无
+     */
+    @PostMapping("/uploadIcon")
+    @ApiOperation("文件上传")
+    public Result<String> upload(MultipartFile file){
+        log.info("文件上传：{}", file);
+        try {
+            //获取原始文件名
+            String originalFilename = file.getOriginalFilename();
+            //截取原始文件名的后缀
+            String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            //生成新的文件名
+            String objectName = UUID.randomUUID().toString() + extension;
+            String filepath = aliOssUtil.upload(file.getBytes(), objectName);
+            Long userId = BaseContext.getCurrentId();
+            userService.updateIcon(userId, filepath);
+            return Result.success(filepath);
+        } catch (IOException e) {
+            log.error(MessageConstant.UPLOAD_FAILED);
+        }
+        return Result.error(MessageConstant.UPLOAD_FAILED);
     }
 }

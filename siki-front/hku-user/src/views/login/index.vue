@@ -11,6 +11,8 @@
             v-model="loginForm.username" 
             placeholder="请输入手机号"
             prefix-icon="Iphone"
+            size="large"
+            class="mobile-input"
           />
         </el-form-item>
         
@@ -20,6 +22,8 @@
               v-model="loginForm.code" 
               placeholder="请输入验证码"
               prefix-icon="Message"
+              size="large"
+              class="mobile-input"
             />
             <el-button 
               type="primary" 
@@ -27,6 +31,7 @@
               @click="sendCode" 
               :disabled="isCounting"
               color="orange"
+              size="large"
             >
               {{ codeButtonText }}
             </el-button>
@@ -34,16 +39,11 @@
         </el-form-item>
         
         <el-form-item>
-          <el-button type="primary" class="login-button" @click="handleLogin" :loading="loading" color="orange">
+          <el-button type="primary" class="login-button" @click="handleLogin" :loading="loading" color="orange" size="large">
             登录
           </el-button>
         </el-form-item>
       </el-form>
-      
-      <div class="login-footer">
-        <span>还没有账号？</span>
-        <router-link to="/register" class="register-link">立即注册</router-link>
-      </div>
     </el-card>
   </div>
 </template>
@@ -100,8 +100,11 @@ const sendCode = async () => {
   
   try {
     // 调用发送验证码API
-    await sendSmsCodeAPI({ phone: loginForm.username })
-    
+    const res = await sendSmsCodeAPI({ phone: loginForm.username })
+    if (res.data.code !== 0) {
+      ElMessage.warning(res.msg || '验证码发送失败，请稍后再试')
+      return 
+    }
     ElMessage.success('验证码发送成功，请注意查收')
     
     // 开始倒计时
@@ -138,19 +141,23 @@ const handleLogin = async () => {
           code: loginForm.code
         })
         
-        // // 保存token到localStorage
-        // localStorage.setItem('token', res.data.token)
-        // 保存用户信息到store和localStorage
-        userStore.setUserInfo(res.data.data)
-        //print
-        console.log(res.data.data)
-        localStorage.setItem('userInfo', JSON.stringify(res.data.data))
-        
-        ElMessage.success('登录成功')
-        
-        // 跳转到首页或者来源页面
-        const redirect = router.currentRoute.value.query.redirect as string
-        router.replace(redirect || '/')
+        // 检查响应状态码，确保登录成功
+        if (res.data.code === 0 && res.status === 200) {
+          // 保存用户信息到store和localStorage
+          userStore.setUserInfo(res.data.data)
+          console.log(res.data.data)
+          localStorage.setItem('userInfo', JSON.stringify(res.data.data))
+          
+          // 只有在确认成功后才显示成功提示
+          ElMessage.success('登录成功')
+          
+          // 跳转到首页或者来源页面
+          const redirect = router.currentRoute.value.query.redirect as string
+          router.replace(redirect || '/')
+        } else {
+          // API返回了错误状态码
+          ElMessage.error(res.msg || '登录失败，请检查验证码是否正确')
+        }
       } catch (error: any) {
         ElMessage.error(error.response?.data?.msg || '登录失败，请检查验证码是否正确')
       } finally {
