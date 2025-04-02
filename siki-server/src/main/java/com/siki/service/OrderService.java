@@ -83,5 +83,5 @@ public interface OrderService {
 
     void complete(Long id);
 
-    void orderRemind(Long id);
+//    void orderRemind(Long id);
 }

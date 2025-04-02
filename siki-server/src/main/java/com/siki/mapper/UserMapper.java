@@ -61,4 +61,7 @@ public interface UserMapper {
      */
     @Update("update user set phone = #{phone}, password = #{password}, nick_name = #{nickName}, icon = #{icon}, update_time = now() where id = #{id}")
     void updateUser(User user);
+
+    @Select("select phone from user where id = #{userId}")
+    String getPhoneById(Long userId);
 }

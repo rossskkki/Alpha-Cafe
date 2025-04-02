@@ -8,17 +8,19 @@
     <!-- 底部导航栏 -->
     <div class="footer-nav">
       <div class="nav-item" @click="router.push('/')" :class="{ active: route.path === '/' }">
+        <el-icon><HomeFilled /></el-icon>
+        <span>首页</span>
+      </div>
+      <div class="nav-item" @click="router.push('/menu')" :class="{ active: route.path === '/menu' }">
         <el-icon><Menu /></el-icon>
-        <span>菜单</span>
+        <span>点单</span>
       </div>
-      <div class="nav-item" @click="router.push('/cart')" :class="{ active: route.path === '/cart' }">
-        <el-icon><ShoppingCart /></el-icon>
+      <div class="nav-item cart-nav-item" @click="router.push('/menu')" v-if="cartStore.cartCount > 0">
+        <el-badge :value="cartStore.cartCount" :max="99">
+          <el-icon><ShoppingCart /></el-icon>
+        </el-badge>
         <span>购物车</span>
-        <span v-if="cartStore.cartCount > 0" class="cart-badge">{{ cartStore.cartCount }}</span>
-      </div>
-      <div class="nav-item" @click="router.push('/order')" :class="{ active: route.path === '/order' }">
-        <el-icon><Tickets /></el-icon>
-        <span>订单</span>
+        <div class="cart-price">¥{{ cartStore.cartTotal }}</div>
       </div>
       <div class="nav-item" @click="router.push('/user')" :class="{ active: route.path === '/user' }">
         <el-icon><User /></el-icon>
@@ -31,10 +33,16 @@
 <script setup lang="ts">
 import { useRouter, useRoute } from 'vue-router'
 import { useCartStore } from '@/store/cart'
+import { ShoppingCart, HomeFilled, Menu, User } from '@element-plus/icons-vue'
+import { onMounted } from 'vue'
 
 const router = useRouter()
 const route = useRoute()
 const cartStore = useCartStore()
+
+onMounted(() => {
+  cartStore.getCartList() // 获取购物车数据
+})
 </script>
 
 <style scoped lang="less">
@@ -72,6 +80,7 @@ const cartStore = useCartStore()
   justify-content: center;
   padding: 5px 0;
   position: relative;
+  flex: 1;
   
   .el-icon {
     font-size: 22px;
@@ -86,19 +95,23 @@ const cartStore = useCartStore()
     color: #409EFF;
   }
   
-  .cart-badge {
-    position: absolute;
-    top: -2px;
-    right: -10px;
-    background-color: #F56C6C;
+  &.cart-nav-item {
+    background-color: #409EFF;
     color: white;
-    border-radius: 10px;
-    padding: 0 6px;
-    font-size: 12px;
-    min-width: 16px;
-    height: 16px;
-    line-height: 16px;
-    text-align: center;
+    margin: 5px;
+    border-radius: 20px;
+    padding: 5px 15px;
+    flex: 2;
+    
+    .cart-price {
+      font-size: 12px;
+      font-weight: bold;
+      margin-top: 2px;
+    }
+    
+    .el-badge {
+      margin-bottom: 2px;
+    }
   }
 }
 </style>

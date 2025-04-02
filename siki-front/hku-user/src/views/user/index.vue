@@ -14,15 +14,9 @@
       <el-divider />
       
       <div class="menu-list">
-        <div class="menu-item" @click="router.push('/order')">
+        <div class="menu-item" @click="showOrdersDialog = true">
           <el-icon><Tickets /></el-icon>
           <span>我的订单</span>
-          <el-icon class="arrow-icon"><ArrowRight /></el-icon>
-        </div>
-        
-        <div class="menu-item" @click="router.push('/address')">
-          <el-icon><Location /></el-icon>
-          <span>收货地址</span>
           <el-icon class="arrow-icon"><ArrowRight /></el-icon>
         </div>
         
@@ -95,20 +89,90 @@
       <el-button type="success" @click="updateAvatar" :loading="updatingAvatar" :disabled="!avatarForm.file">上传头像</el-button>
     </div>
   </el-dialog>
+
+  <!-- 订单历史对话框 -->
+  <el-dialog
+    v-model="showOrdersDialog"
+    title="我的订单"
+    width="90%"
+    :close-on-click-modal="true"
+  >
+    <div v-if="orderList.length === 0 && !orderLoading" class="empty-order">
+      <el-empty description="暂无订单数据" />
+    </div>
+    
+    <el-card v-else v-loading="orderLoading" class="order-list">
+      <div v-for="order in orderList" :key="order.id" class="order-item">
+        <div class="order-header">
+          <span class="order-number">订单号: {{ order.number }}</span>
+          <span class="order-status" :class="`status-${order.status}`">{{ orderStatus[order.status] }}</span>
+        </div>
+        
+        <div class="order-content">
+          <div class="order-dishes">
+            <div v-for="(item, index) in order.orderDetails" :key="index" class="dish-item">
+              <span class="dish-name">{{ item.name }}</span>
+              <span class="dish-count">x{{ item.number }}</span>
+            </div>
+          </div>
+          
+          <div class="order-info">
+            <div class="order-time">{{ formatDate(order.orderTime) }}</div>
+            <div class="order-amount">¥{{ order.amount }}</div>
+          </div>
+        </div>
+        
+        <div class="order-footer">
+          <el-button type="primary" size="small" @click="viewOrderDetail(order.id)">查看详情</el-button>
+        </div>
+      </div>
+    </el-card>
+    
+    <div class="pagination-container" v-if="orderList.length > 0">
+      <el-pagination
+        v-model:current-page="page"
+        v-model:page-size="pageSize"
+        :page-sizes="[5, 10, 20]"
+        layout="total, sizes, prev, pager, next"
+        :total="total"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+      />
+    </div>
+  </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useUserStore } from '@/store/user'
 import { getUserInfoAPI, updateUserInfoAPI, updateAvatarAPI, logoutAPI } from '@/api/user'
+import { getOrderListAPI } from '@/api/order'
 import type { FormInstance } from 'element-plus'
 
 const router = useRouter()
 const userStore = useUserStore()
 const userInfo = ref(userStore.userInfo)
+
+// 订单相关
+const showOrdersDialog = ref(false)
+const orderList = ref([])
+const orderLoading = ref(false)
+const page = ref(1)
+const pageSize = ref(10)
+const total = ref(0)
+
+// 订单状态
+const orderStatus = {
+  1: '待付款',
+  2: '待接单',
+  3: '待派送',
+  4: '派送中',
+  5: '已完成',
+  6: '已取消'
+}
 
 // 表单相关
 const formRef = ref<FormInstance>()
@@ -248,12 +312,63 @@ const handleLogout = async () => {
   }
 }
 
-// onMounted(() => {
-//   // 如果已登录，获取最新的用户信息
-//   if (userInfo.value) {
-//     getUserInfo()
-//   }
-// })
+// 获取订单列表
+const getOrderList = async () => {
+  orderLoading.value = true
+  try {
+    const res = await getOrderListAPI({
+      page: page.value,
+      pageSize: pageSize.value
+    })
+    orderList.value = res.data.records
+    total.value = res.data.total
+  } catch (error) {
+    ElMessage.error('获取订单列表失败')
+    console.error(error)
+  } finally {
+    orderLoading.value = false
+  }
+}
+
+// 查看订单详情
+const viewOrderDetail = (id) => {
+  router.push(`/order/detail/${id}`)
+  showOrdersDialog.value = false
+}
+
+// 监听订单对话框打开，加载订单数据
+watch(showOrdersDialog, (newVal) => {
+  if (newVal) {
+    getOrderList()
+  }
+})
+
+// 页码变化
+const handleCurrentChange = (val) => {
+  page.value = val
+  getOrderList()
+}
+
+// 页容量变化
+const handleSizeChange = (val) => {
+  pageSize.value = val
+  page.value = 1
+  getOrderList()
+}
+
+// 格式化时间
+const formatDate = (dateStr) => {
+  if (!dateStr) return ''
+  const date = new Date(dateStr)
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
+}
+
+onMounted(() => {
+  // 如果已登录，获取最新的用户信息
+  // if (userInfo.value) {
+  //   getUserInfo()
+  // }
+})
 </script>
 
 <style scoped>
@@ -366,5 +481,107 @@ const handleLogout = async () => {
   margin-top: 10px;
   color: #67c23a;
   font-size: 14px;
+}
+
+/* 订单列表样式 */
+.order-list {
+  margin-bottom: 20px;
+}
+
+.order-item {
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.order-item:last-child {
+  border-bottom: none;
+}
+
+.order-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.order-number {
+  font-size: 14px;
+  color: #666;
+}
+
+.order-status {
+  font-weight: bold;
+}
+
+.status-1 {
+  color: #E6A23C;
+}
+
+.status-2, .status-3, .status-4 {
+  color: #409EFF;
+}
+
+.status-5 {
+  color: #67C23A;
+}
+
+.status-6 {
+  color: #909399;
+}
+
+.order-content {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.order-dishes {
+  flex: 1;
+}
+
+.dish-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.dish-name {
+  flex: 1;
+}
+
+.dish-count {
+  color: #666;
+}
+
+.order-info {
+  text-align: right;
+  min-width: 100px;
+}
+
+.order-time {
+  font-size: 12px;
+  color: #999;
+  margin-bottom: 5px;
+}
+
+.order-amount {
+  font-weight: bold;
+  color: #F56C6C;
+}
+
+.order-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.pagination-container {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.empty-order {
+  padding: 30px 0;
 }
 </style>

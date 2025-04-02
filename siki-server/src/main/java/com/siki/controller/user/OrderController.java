@@ -103,11 +103,11 @@ public class OrderController {
      * @param id
      * @return
      */
-    @GetMapping("/reminder/{id}")
-    @ApiOperation("订单提醒")
-    public Result orderReminder(@PathVariable Long id) {
-        log.info("订单提醒：{}", id);
-        orderService.orderRemind(id);
-        return Result.success();
-    }
+//    @GetMapping("/reminder/{id}")
+//    @ApiOperation("订单提醒")
+//    public Result orderReminder(@PathVariable Long id) {
+//        log.info("订单提醒：{}", id);
+//        orderService.orderRemind(id);
+//        return Result.success();
+//    }
 }

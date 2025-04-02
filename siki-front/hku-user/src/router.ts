@@ -13,14 +13,9 @@ const router = createRouter({
           component: () => import('./views/home/index.vue')
         },
         {
-          path: 'cart',
-          name: 'cart',
-          component: () => import('./views/cart/index.vue')
-        },
-        {
-          path: 'order',
-          name: 'order',
-          component: () => import('./views/order/index.vue')
+          path: 'menu',
+          name: 'menu',
+          component: () => import('./views/menu/index.vue')
         },
         {
           path: 'user',
@@ -53,16 +48,6 @@ const router = createRouter({
       path: '/order/detail/:id',
       name: 'order-detail',
       component: () => import('./views/order/detail.vue')
-    },
-    {
-      path: '/address',
-      name: 'address',
-      component: () => import('./views/address/index.vue')
-    },
-    {
-      path: '/address/edit/:id?',
-      name: 'address-edit',
-      component: () => import('./views/address/edit.vue')
     }
   ]
 })
@@ -70,7 +55,7 @@ const router = createRouter({
 // 全局前置守卫
 router.beforeEach((to, from, next) => {
   // 需要登录权限的页面
-  const authPages = ['/cart', '/order', '/user', '/address']
+  const authPages = ['/order', '/user']
   // 当前页面是否需要登录
   const needLogin = authPages.some(path => to.path.startsWith(path))
   // 获取token

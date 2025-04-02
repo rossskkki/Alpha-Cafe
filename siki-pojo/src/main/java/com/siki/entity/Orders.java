@@ -49,7 +49,7 @@ public class Orders implements Serializable {
     private Long userId;
 
     //地址id
-    private Long addressBookId;
+//    private Long addressBookId;
 
     //下单时间
     private LocalDateTime orderTime;
@@ -76,10 +76,10 @@ public class Orders implements Serializable {
     private String phone;
 
     //地址
-    private String address;
+//    private String address;
 
     //收货人
-    private String consignee;
+//    private String consignee;
 
     //订单取消原因
     private String cancelReason;
@@ -91,20 +91,29 @@ public class Orders implements Serializable {
     private LocalDateTime cancelTime;
 
     //预计送达时间
-    private LocalDateTime estimatedDeliveryTime;
+//    private LocalDateTime estimatedDeliveryTime;
+
+    //预计完成时间
+    private LocalDateTime estimatedFinishedTime;
 
     //配送状态  1立即送出  0选择具体时间
-    private Integer deliveryStatus;
+//    private Integer deliveryStatus;
+
+    //点单状态  1立即下单  0预约下单
+    private Integer orderStatus;
 
     //送达时间
-    private LocalDateTime deliveryTime;
+//    private LocalDateTime deliveryTime;
 
+
+    //完成时间
+    private LocalDateTime finishedTime;
     //打包费
-    private int packAmount;
+//    private int packAmount;
 
     //餐具数量
-    private int tablewareNumber;
+//    private int tablewareNumber;
 
     //餐具数量状态  1按餐量提供  0选择具体数量
-    private Integer tablewareStatus;
+//    private Integer tablewareStatus;
 }

@@ -1,0 +1,816 @@
+<template>
+  <div class="menu-container">
+    <!-- 顶部搜索栏 -->
+    <div class="search-bar">
+      <el-input
+        v-model="searchKeyword"
+        placeholder="搜索菜品"
+        prefix-icon="Search"
+        clearable
+        @clear="handleSearchClear"
+        @input="handleSearch"
+      />
+    </div>
+
+    <!-- 分类列表 -->
+    <div class="category-list">
+      <div
+        v-for="item in categoryList"
+        :key="item.id"
+        class="category-item"
+        :class="{ active: activeCategory === item.id }"
+        @click="handleCategoryClick(item.id)"
+      >
+        {{ item.name }}
+      </div>
+    </div>
+
+    <!-- 菜品列表 -->
+    <div class="menu-list" v-if="activeCategory">
+      <div class="menu-title">{{ getCategoryName(activeCategory) }}</div>
+      <div class="dish-list" v-if="dishList.length > 0">
+        <div v-for="dish in dishList" :key="dish.id" class="dish-item" @click="handleDishClick(dish)">
+          <div class="dish-img">
+            <img :src="dish.image" :alt="dish.name" />
+          </div>
+          <div class="dish-info">
+            <div class="dish-name">{{ dish.name }}</div>
+            <div class="dish-desc">{{ dish.description }}</div>
+            <div class="dish-price">¥{{ dish.price }}</div>
+          </div>
+          <div class="dish-action">
+            <el-button type="primary" circle @click.stop="addToCart(dish)">
+              <el-icon><Plus /></el-icon>
+            </el-button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 套餐列表 -->
+      <div class="setmeal-list" v-if="setmealList.length > 0">
+        <div v-for="setmeal in setmealList" :key="setmeal.id" class="setmeal-item" @click="handleSetmealClick(setmeal)">
+          <div class="setmeal-img">
+            <img :src="setmeal.image" :alt="setmeal.name" />
+          </div>
+          <div class="setmeal-info">
+            <div class="setmeal-name">{{ setmeal.name }}</div>
+            <div class="setmeal-desc">{{ setmeal.description }}</div>
+            <div class="setmeal-price">¥{{ setmeal.price }}</div>
+          </div>
+          <div class="setmeal-action">
+            <el-button type="primary" circle @click.stop="addToCart(setmeal, true)">
+              <el-icon><Plus /></el-icon>
+            </el-button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 无数据提示 -->
+      <el-empty v-if="dishList.length === 0 && setmealList.length === 0" description="暂无数据" />
+    </div>
+    
+    <!-- 购物车底部栏 -->
+    <div class="cart-bottom-bar" v-if="cartStore.cartCount > 0">
+      <div class="cart-info" @click="showCartDrawer = true">
+        <el-badge :value="cartStore.cartCount" :max="99">
+          <el-icon class="cart-icon"><ShoppingCart /></el-icon>
+        </el-badge>
+        <div class="cart-summary">
+          <div class="cart-items-count">{{ cartStore.cartCount }}件商品</div>
+          <div class="cart-total-price">¥{{ cartStore.cartTotal }}</div>
+        </div>
+      </div>
+      <el-button type="primary" class="checkout-btn" @click="handleCheckout">去结算</el-button>
+    </div>
+    
+    <!-- 购物车抽屉 -->
+    <el-drawer
+      v-model="showCartDrawer"
+      title="购物车"
+      direction="btt"
+      size="60%"
+    >
+      <div v-if="cartStore.cartList.length > 0" class="cart-content">
+        <!-- 购物车列表 -->
+        <div class="cart-list">
+          <div class="cart-header">
+            <div class="cart-title">已选商品</div>
+            <div class="cart-clear" @click="handleClearCart">清空购物车</div>
+          </div>
+          <div class="cart-items">
+            <div v-for="item in cartStore.cartList" :key="item.id" class="cart-item">
+              <div class="item-info">
+                <div class="item-name">{{ item.name }}</div>
+                <div class="item-price">¥{{ item.amount }}</div>
+              </div>
+              <div class="item-action">
+                <el-button type="primary" size="small" circle @click="handleDecreaseItem(item)">
+                  <el-icon><Minus /></el-icon>
+                </el-button>
+                <span class="item-count">{{ item.number }}</span>
+                <el-button type="primary" size="small" circle @click="handleIncreaseItem(item)">
+                  <el-icon><Plus /></el-icon>
+                </el-button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 结算区域 -->
+        <div class="cart-footer">
+          <div class="cart-total-info">
+            <span>合计：</span>
+            <span class="total-price">¥{{ cartStore.cartTotal }}</span>
+          </div>
+          <el-button type="primary" class="checkout-btn" @click="handleCheckout">去结算</el-button>
+        </div>
+      </div>
+    </el-drawer>
+    
+    <!-- 结算弹窗 -->
+    <el-dialog v-model="checkoutDialogVisible" title="订单确认" width="90%">
+      <div class="checkout-dialog">
+        <!-- 就餐方式 -->
+        <div class="dining-section">
+          <div class="section-title">就餐方式</div>
+          <el-radio-group v-model="diningMethod">
+            <el-radio :label="1">堂食</el-radio>
+            <el-radio :label="2">外带</el-radio>
+          </el-radio-group>
+        </div>
+        
+        <!-- 桌号选择 (仅堂食时显示) -->
+        <div class="table-section" v-if="diningMethod === 1">
+          <div class="section-title">桌号</div>
+          <el-input-number v-model="tableNumber" :min="1" :max="50" size="large" />
+        </div>
+        
+        <!-- 订单商品 -->
+        <div class="order-items">
+          <div class="section-title">订单商品</div>
+          <div v-for="item in cartStore.cartList" :key="item.id" class="order-item">
+            <div class="item-name">{{ item.name }}</div>
+            <div class="item-count">x{{ item.number }}</div>
+            <div class="item-price">¥{{ (item.amount * item.number).toFixed(2) }}</div>
+          </div>
+        </div>
+        
+        <!-- 备注 -->
+        <div class="remark-section">
+          <div class="section-title">订单备注</div>
+          <el-input v-model="orderRemark" placeholder="请输入备注信息" type="textarea" :rows="2" />
+        </div>
+        
+        <!-- 订单金额 -->
+        <div class="order-total">
+          <div class="total-label">订单金额</div>
+          <div class="total-value">¥{{ cartStore.cartTotal }}</div>
+        </div>
+      </div>
+      
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="checkoutDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="handleSubmitOrder">提交订单</el-button>
+        </div>
+      </template>
+    </el-dialog>
+    
+    <!-- 取餐码弹窗 -->
+    <el-dialog v-model="pickupCodeDialogVisible" title="取餐码" width="80%" center>
+      <div class="pickup-code-container">
+        <div class="pickup-code">{{ pickupCode }}</div>
+        <p class="pickup-tip" v-if="diningMethod === 1">请记住您的取餐码，服务员将为您送餐到{{ tableNumber }}号桌</p>
+        <p class="pickup-tip" v-else>请凭此取餐码到取餐处取餐</p>
+      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button type="primary" @click="pickupCodeDialogVisible = false">确定</el-button>
+        </div>
+      </template>
+    </el-dialog>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { getCategoryListAPI, getDishListAPI, getSetmealListAPI } from '@/api/menu'
+import { addToCartAPI, getCartListAPI, clearCartAPI, deleteCartItemAPI } from '@/api/cart'
+import { submitOrderAPI } from '@/api/order'
+import { useCartStore } from '@/store/cart'
+import { Plus, Minus, ShoppingCart } from '@element-plus/icons-vue'
+
+const router = useRouter()
+const cartStore = useCartStore()
+
+// 搜索关键词
+const searchKeyword = ref('')
+
+// 购物车抽屉
+const showCartDrawer = ref(false)
+
+// 结算弹窗
+const checkoutDialogVisible = ref(false)
+
+// 就餐方式 1-堂食 2-外带
+const diningMethod = ref(1)
+
+// 桌号
+const tableNumber = ref(1)
+
+// 订单备注
+const orderRemark = ref('')
+
+// 取餐码弹窗
+const pickupCodeDialogVisible = ref(false)
+const pickupCode = ref('')
+
+// 分类列表
+const categoryList = ref<any[]>([])
+// 当前选中的分类
+const activeCategory = ref<number | null>(null)
+
+// 菜品列表
+const dishList = ref<any[]>([])
+// 套餐列表
+const setmealList = ref<any[]>([])
+
+// 购物车详情显示控制
+const showCartDetail = ref(false)
+
+// 结算相关
+// const checkoutDialogVisible = ref(false)
+// const orderRemark = ref('')
+const pickupMethod = ref(1) // 1-堂食 2-外带
+
+// 取餐码相关
+// const pickupCodeDialogVisible = ref(false)
+// const pickupCode = ref('')
+
+// 获取分类列表
+const getCategoryList = async () => {
+  try {
+    const res = await getCategoryListAPI()
+    categoryList.value = res.data.data
+    if (categoryList.value.length > 0) {
+      activeCategory.value = categoryList.value[0].id
+      getMenuList()
+    }
+  } catch (error) {
+    console.error('获取分类列表失败', error)
+    ElMessage.error('获取分类列表失败')
+  }
+}
+
+// 获取菜品和套餐列表
+const getMenuList = async () => {
+  if (!activeCategory.value) return
+  
+  try {
+    // 获取菜品列表
+    const dishRes = await getDishListAPI({
+      categoryId: activeCategory.value,
+      name: searchKeyword.value
+    })
+    dishList.value = dishRes.data.data
+    
+    // 获取套餐列表
+    const setmealRes = await getSetmealListAPI({
+      categoryId: activeCategory.value,
+      name: searchKeyword.value
+    })
+    setmealList.value = setmealRes.data.data
+  } catch (error) {
+    console.error('获取菜品列表失败', error)
+    ElMessage.error('获取菜品列表失败')
+  }
+}
+
+// 获取分类名称
+const getCategoryName = (id: number) => {
+  const category = categoryList.value.find(item => item.id === id)
+  return category ? category.name : ''
+}
+
+// 处理分类点击
+const handleCategoryClick = (id: number) => {
+  activeCategory.value = id
+  getMenuList()
+}
+
+// 处理搜索
+const handleSearch = () => {
+  getMenuList()
+}
+
+// 处理清除搜索
+const handleSearchClear = () => {
+  searchKeyword.value = ''
+  getMenuList()
+}
+
+// 处理菜品点击
+const handleDishClick = (dish: any) => {
+  router.push(`/dish/${dish.id}`)
+}
+
+// 处理套餐点击
+const handleSetmealClick = (setmeal: any) => {
+  router.push(`/setmeal/${setmeal.id}`)
+}
+
+// 添加到购物车
+const addToCart = async (item: any, isSetmeal = false) => {
+  try {
+    await addToCartAPI({
+      dishId: isSetmeal ? null : item.id,
+      setmealId: isSetmeal ? item.id : null,
+      dishFlavor: '',
+      number: 1
+    })
+    ElMessage.success('添加成功')
+    cartStore.getCartList() // 刷新购物车数据
+  } catch (error) {
+    console.error('添加到购物车失败', error)
+    ElMessage.error('添加到购物车失败')
+  }
+}
+
+// 清空购物车
+const handleClearCart = async () => {
+  try {
+    await ElMessageBox.confirm('确定清空购物车吗？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    
+    await clearCartAPI()
+    cartStore.getCartList()
+    ElMessage.success('购物车已清空')
+    
+    if (showCartDrawer.value) {
+      showCartDrawer.value = false
+    }
+  } catch (error) {
+    console.error('清空购物车失败', error)
+  }
+}
+
+// 减少购物车商品数量
+const handleDecreaseItem = async (item: any) => {
+  if (item.number <= 1) {
+    // 如果数量为1，则删除该商品
+    try {
+      await deleteCartItemAPI(item.id)
+      await cartStore.getCartList() // 刷新购物车数据
+      ElMessage.success('商品已移除')
+    } catch (error) {
+      console.error('移除商品失败', error)
+      ElMessage.error('移除商品失败')
+    }
+  } else {
+    // 数量大于1，减少数量
+    try {
+      await addToCartAPI({
+        id: item.id,
+        number: item.number - 1
+      })
+      await cartStore.getCartList() // 刷新购物车数据
+    } catch (error) {
+      console.error('减少数量失败', error)
+      ElMessage.error('减少数量失败')
+    }
+  }
+}
+
+// 增加购物车商品数量
+const handleIncreaseItem = async (item: any) => {
+  try {
+    await addToCartAPI({
+      id: item.id,
+      number: item.number + 1
+    })
+    await cartStore.getCartList() // 刷新购物车数据
+  } catch (error) {
+    console.error('增加数量失败', error)
+    ElMessage.error('增加数量失败')
+  }
+}
+
+// 去结算
+const handleCheckout = () => {
+  if (cartStore.cartList.length === 0) {
+    ElMessage.warning('购物车为空，请先添加商品')
+    return
+  }
+  checkoutDialogVisible.value = true
+  showCartDrawer.value = false
+}
+
+// 生成随机取餐码
+const generatePickupCode = () => {
+  // 生成6位数字取餐码
+  return Math.floor(100000 + Math.random() * 900000).toString()
+}
+
+// 提交订单
+const handleSubmitOrder = async () => {
+  try {
+    const params = {
+      tableNumber: diningMethod.value === 1 ? tableNumber.value : null,
+      payMethod: 1, // 1微信支付 2支付宝支付
+      remark: orderRemark.value,
+      diningMethod: diningMethod.value // 1堂食 2外带
+    }
+    
+    const res = await submitOrderAPI(params)
+    if (res.data.code === 0) {
+      ElMessage.success('下单成功')
+      checkoutDialogVisible.value = false
+      cartStore.clearCart()
+      
+      // 显示取餐码
+      pickupCode.value = res.data.data
+      pickupCodeDialogVisible.value = true
+    }
+  } catch (error) {
+    console.error('提交订单失败', error)
+    ElMessage.error('提交订单失败')
+  }
+}
+
+// 组件挂载时获取分类列表和购物车数据
+onMounted(() => {
+  getCategoryList()
+  cartStore.getCartList()
+})
+</script>
+
+<style scoped lang="less">
+.menu-container {
+  padding: 10px;
+  padding-bottom: 70px;
+  
+  // 购物车底部栏
+  .cart-bottom-bar {
+    position: fixed;
+    bottom: 60px;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background-color: #fff;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+    z-index: 99;
+    
+    .cart-info {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      padding: 0 15px;
+      height: 100%;
+      
+      .cart-icon {
+        font-size: 24px;
+        color: #409EFF;
+        margin-right: 10px;
+      }
+      
+      .cart-summary {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        
+        .cart-items-count {
+          font-size: 12px;
+          color: #606266;
+        }
+        
+        .cart-total-price {
+          font-size: 16px;
+          font-weight: bold;
+          color: #f56c6c;
+        }
+      }
+    }
+    
+    .checkout-btn {
+      height: 100%;
+      width: 120px;
+      border-radius: 0;
+      font-size: 16px;
+    }
+  }
+
+.search-bar {
+  margin-bottom: 15px;
+}
+
+.category-list {
+  display: flex;
+  overflow-x: auto;
+  padding: 5px 0;
+  margin-bottom: 15px;
+  
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .category-item {
+    flex-shrink: 0;
+    padding: 8px 15px;
+    margin-right: 10px;
+    background-color: #f5f5f5;
+    border-radius: 20px;
+    font-size: 14px;
+    
+    &.active {
+      background-color: #409EFF;
+      color: white;
+    }
+  }
+}
+
+.menu-list {
+  .menu-title {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    padding-left: 5px;
+    border-left: 3px solid #409EFF;
+  }
+}
+
+.dish-list, .setmeal-list {
+  .dish-item, .setmeal-item {
+    display: flex;
+    padding: 15px 0;
+    border-bottom: 1px solid #f5f5f5;
+    
+    .dish-img, .setmeal-img {
+      width: 80px;
+      height: 80px;
+      margin-right: 15px;
+      
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 5px;
+      }
+    }
+    
+    .dish-info, .setmeal-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      
+      .dish-name, .setmeal-name {
+        font-size: 16px;
+        font-weight: bold;
+      }
+      
+      .dish-desc, .setmeal-desc {
+        font-size: 12px;
+        color: #999;
+        margin: 5px 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+      }
+      
+      .dish-price, .setmeal-price {
+        font-size: 16px;
+        color: #f56c6c;
+        font-weight: bold;
+      }
+    }
+    
+    .dish-action, .setmeal-action {
+      display: flex;
+      align-items: flex-end;
+      padding-bottom: 5px;
+    }
+  }
+}
+
+.bottom-cart {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 60px;
+  background-color: #fff;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+
+.cart-summary {
+  display: flex;
+  align-items: center;
+  padding: 10px 15px;
+  height: 50px;
+}
+
+.cart-icon {
+  font-size: 24px;
+  color: #409EFF;
+  margin-right: 10px;
+}
+
+.cart-info {
+  flex: 1;
+}
+
+.cart-total {
+  font-weight: bold;
+  color: #F56C6C;
+  font-size: 16px;
+}
+
+.checkout-btn {
+  height: 36px;
+}
+
+.cart-detail {
+  padding: 10px 15px;
+  max-height: 300px;
+  overflow-y: auto;
+  border-top: 1px solid #f0f0f0;
+}
+
+.cart-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.cart-list {
+  flex: 1;
+  overflow-y: auto;
+  
+  .cart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    border-bottom: 1px solid #f5f5f5;
+    
+    .cart-title {
+      font-size: 16px;
+      font-weight: bold;
+    }
+    
+    .cart-clear {
+      font-size: 14px;
+      color: #999;
+    }
+  }
+  
+  .cart-items {
+    padding: 0 15px;
+    
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 0;
+      border-bottom: 1px solid #f5f5f5;
+      
+      .item-info {
+        .item-name {
+          font-size: 14px;
+          margin-bottom: 5px;
+        }
+        
+        .item-price {
+          font-size: 14px;
+          color: #f56c6c;
+        }
+      }
+      
+      .item-action {
+        display: flex;
+        align-items: center;
+        
+        .item-count {
+          margin: 0 10px;
+          min-width: 20px;
+          text-align: center;
+        }
+      }
+    }
+  }
+}
+
+.cart-footer {
+  padding: 15px;
+  border-top: 1px solid #f5f5f5;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  
+  .cart-total-info {
+    .total-price {
+      font-size: 18px;
+      color: #f56c6c;
+      font-weight: bold;
+    }
+  }
+  
+  .checkout-btn {
+    padding: 10px 20px;
+  }
+}
+
+.empty-cart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.checkout-dialog {
+  .dining-section,
+  .table-section,
+  .order-items,
+  .remark-section,
+  .order-total {
+    margin-bottom: 20px;
+  }
+  
+  .section-title {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  
+  .table-section {
+    .el-input-number {
+      width: 120px;
+    }
+  }
+  
+  .order-items {
+    .order-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #f5f5f5;
+      
+      .item-name {
+        flex: 1;
+      }
+      
+      .item-count {
+        margin: 0 15px;
+        color: #999;
+      }
+      
+      .item-price {
+        color: #f56c6c;
+      }
+    }
+  }
+  
+  .order-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 16px;
+    
+    .total-value {
+      font-size: 18px;
+      color: #f56c6c;
+      font-weight: bold;
+    }
+  }
+}
+
+.pickup-code-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 0;
+  
+  .pickup-code {
+    font-size: 36px;
+    font-weight: bold;
+    color: #409EFF;
+    margin-bottom: 15px;
+    letter-spacing: 5px;
+  }
+  
+  .pickup-tip {
+    font-size: 14px;
+    color: #999;
+  }
+}}
+</style>
