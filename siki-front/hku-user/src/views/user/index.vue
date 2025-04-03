@@ -220,16 +220,16 @@ const rules = {
   ]
 }
 
-// 获取用户信息
-// const getUserInfo = async () => {
-//   try {
-//     const res = await getUserInfoAPI()
-//     userInfo.value = res.data
-//     userStore.setUserInfo(res.data)
-//   } catch (error) {
-//     console.error('获取用户信息失败', error)
-//   }
-// }
+// // 获取用户信息
+const getUserInfo = async () => {
+  try {
+    const res = await getUserInfoAPI()
+    userInfo.value = res.data
+    userStore.setUserInfo(res.data)
+  } catch (error){
+    console.error('获取用户信息失败', error)
+  }
+}
 
 // 打开编辑对话框
 const openEditDialog = () => {
@@ -250,7 +250,7 @@ const updateUserInfo = async () => {
         ElMessage.success('个人信息修改成功')
         
         showEditDialog.value = false
-        // getUserInfo() // 刷新用户信息
+     //    // getUserInfo() // 刷新用户信息
       } catch (error) {
         ElMessage.error('修改个人信息失败')
         console.error(error)

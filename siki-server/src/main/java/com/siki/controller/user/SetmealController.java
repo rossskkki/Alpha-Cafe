@@ -9,6 +9,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,6 +24,9 @@ public class SetmealController {
     @Autowired
     private SetmealService setmealService;
 
+    @Autowired
+    private RedisTemplate redisTemplate;
+
     /**
      * 条件查询
      *
@@ -33,11 +37,21 @@ public class SetmealController {
     @ApiOperation("根据分类id查询套餐")
     @Cacheable(cacheNames = "setmealCache", key = "#categoryId")
     public Result<List<Setmeal>> list(Long categoryId) {
+        //查询redis
+        //构造redis的key
+        String key = "setmealCache::" + categoryId;
+        //查询redis中是否存在套餐数据
+        List<Setmeal> list = (List<Setmeal>) redisTemplate.opsForValue().get(key);
+        //如果存在，直接返回
+        if (list != null) {
+            return Result.success(list);
+        }
+        //如果不存在，查询数据库，然后存入redis
         Setmeal setmeal = new Setmeal();
         setmeal.setCategoryId(categoryId);
         setmeal.setStatus(StatusConstant.ENABLE);
 
-        List<Setmeal> list = setmealService.list(setmeal);
+        list = setmealService.list(setmeal);
         return Result.success(list);
     }
 

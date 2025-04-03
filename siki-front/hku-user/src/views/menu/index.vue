@@ -264,24 +264,38 @@ const getCategoryList = async () => {
   }
 }
 
+// 获取当前分类的类型
+const getCategoryType = (id: number): number | undefined => {
+  const category = categoryList.value.find(item => item.id === id)
+  return category ? category.type : undefined
+}
+
 // 获取菜品和套餐列表
 const getMenuList = async () => {
   if (!activeCategory.value) return
   
   try {
-    // 获取菜品列表
-    const dishRes = await getDishListAPI({
-      categoryId: activeCategory.value,
-      name: searchKeyword.value
-    })
-    dishList.value = dishRes.data.data
+    const categoryType = getCategoryType(activeCategory.value)
     
-    // 获取套餐列表
-    const setmealRes = await getSetmealListAPI({
-      categoryId: activeCategory.value,
-      name: searchKeyword.value
-    })
-    setmealList.value = setmealRes.data.data
+    // 根据分类类型调用不同的API
+    if (categoryType === 1) { // 菜品分类
+      // 获取菜品列表
+      const dishRes = await getDishListAPI(activeCategory.value)
+      dishList.value = dishRes.data.data
+      setmealList.value = [] // 清空套餐列表
+    } else if (categoryType === 2) { // 套餐分类
+      // 获取套餐列表
+      const setmealRes = await getSetmealListAPI(activeCategory.value)
+      setmealList.value = setmealRes.data.data
+      dishList.value = [] // 清空菜品列表
+    } else {
+      // 如果类型未知，则同时获取菜品和套餐列表
+      const dishRes = await getDishListAPI(activeCategory.value)
+      dishList.value = dishRes.data.data
+      
+      const setmealRes = await getSetmealListAPI(activeCategory.value)
+      setmealList.value = setmealRes.data.data
+    }
   } catch (error) {
     console.error('获取菜品列表失败', error)
     ElMessage.error('获取菜品列表失败')

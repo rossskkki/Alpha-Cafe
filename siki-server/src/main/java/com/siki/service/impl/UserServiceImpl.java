@@ -161,6 +161,24 @@ public class UserServiceImpl implements com.siki.service.UserService {
         BeanUtils.copyProperties(user, userLoginVO);
     }
 
+    @Override
+    public User getById(Long userId) {
+        //根据id查询用户
+        User user = userMapper.getUserById(userId);
+        //返回用户信息
+        return user;
+    }
+
+    @Override
+    public void updateById(Long userId, String name) {
+        //根据id查询用户
+        User user = userMapper.getUserById(userId);
+        //更新用户信息
+        user.setNickName(name);
+        user.setUpdateTime(LocalDateTime.now());
+        userMapper.updateUser(user);
+    }
+
     private User createUserWithPhone(String phone) {
         User user = new User();
         user.setPhone(phone);

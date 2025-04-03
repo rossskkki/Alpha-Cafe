@@ -14,11 +14,7 @@ import com.siki.vo.UserLoginVO;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -99,5 +95,27 @@ public class UserController {
             log.error(MessageConstant.UPLOAD_FAILED);
         }
         return Result.error(MessageConstant.UPLOAD_FAILED);
+    }
+
+    /**
+     * 修改用户信息
+     * @param name 用户信息
+     * @return 无
+     */
+    @PutMapping("/update")
+    @ApiOperation("修改用户信息")
+    public Result<String> update(@RequestParam String name){
+        Long userId = BaseContext.getCurrentId();
+        userService.updateById(userId, name);
+        return Result.success();
+    }
+
+    @GetMapping("/info")
+    @ApiOperation("获取用户信息")
+    public Result<User> info(){
+        log.info("获取用户信息");
+        Long userId = BaseContext.getCurrentId();
+        User user = userService.getById(userId);
+        return Result.success(user);
     }
 }

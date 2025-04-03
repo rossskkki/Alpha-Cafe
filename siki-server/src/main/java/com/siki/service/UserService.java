@@ -24,4 +24,8 @@ public interface UserService {
     User login(UserLoginDTO loginForm, HttpSession session);
 
     void updateIcon(Long userId, String filepath);
+
+    User getById(Long userId);
+
+    void updateById(Long userId, String name);
 }
