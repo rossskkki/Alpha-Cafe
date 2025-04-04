@@ -311,6 +311,7 @@ const getCategoryName = (id: number) => {
 // 处理分类点击
 const handleCategoryClick = (id: number) => {
   activeCategory.value = id
+  localStorage.setItem('lastCategoryId', id.toString()) // 保存当前选中的分类ID
   getMenuList()
 }
 
@@ -327,12 +328,18 @@ const handleSearchClear = () => {
 
 // 处理菜品点击
 const handleDishClick = (dish: any) => {
-  router.push(`/dish/${dish.id}`)
+  router.push({
+    path: `/dish/${dish.id}`,
+    query: { categoryId: activeCategory.value }
+  })
 }
 
 // 处理套餐点击
 const handleSetmealClick = (setmeal: any) => {
-  router.push(`/setmeal/${setmeal.id}`)
+  router.push({
+    path: `/setmeal/${setmeal.id}`,
+    query: { categoryId: activeCategory.value }
+  }) 
 }
 
 // 添加到购物车
@@ -458,7 +465,19 @@ const handleSubmitOrder = async () => {
 
 // 组件挂载时获取分类列表和购物车数据
 onMounted(() => {
-  getCategoryList()
+  getCategoryList().then(() => {
+    // 检查URL中是否有分类ID参数
+    const urlCategoryId = router.currentRoute.value.query.activeCategory // 确保参数名称一致
+    if (urlCategoryId && categoryList.value.some(cat => cat.id == urlCategoryId)) {
+      // 如果URL中有分类ID且该分类存在，则选中它
+      activeCategory.value = Number(urlCategoryId)
+    } else if (categoryList.value.length > 0) {
+      // 否则选中第一个分类
+      activeCategory.value = categoryList.value[0].id
+    }
+    getMenuList()
+  })
+  
   cartStore.getCartList()
 })
 </script>

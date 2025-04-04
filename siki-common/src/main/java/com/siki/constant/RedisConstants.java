@@ -9,7 +9,9 @@ public class RedisConstants {
     public static final Long CACHE_NULL_TTL = 2L;
 
     public static final Long CACHE_DISH_TTL = 30L;
+    public static final Long CACHE_SETMEAL_TTL = 30L;
     public static final String CACHE_DISH_KEY = "cache:dish:";
+    public static final String CACHE_SETMEAL_KEY = "cache:setmeal:";
     public static final String CACHE_SHOP_TYPE_KEY = "cache:type:";
     public static final Long CACHE_SHOP_TYPE_TTL = 30L;
 

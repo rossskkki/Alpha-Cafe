@@ -1,7 +1,7 @@
 <template>
   <div class="dish-detail-container">
     <div class="page-header">
-      <el-page-header @back="router.back()" title="" content="菜品详情" />
+      <el-page-header @back="handleBack" title="返回" content="菜品详情" />
     </div>
     
     <div v-if="loading" class="loading-container">
@@ -29,7 +29,7 @@
           <h3>口味选择</h3>
           <div v-for="(flavor, index) in dish.flavors" :key="index" class="flavor-item">
             <span class="flavor-name">{{ flavor.name }}</span>
-            <el-radio-group v-model="selectedFlavors[flavor.name]">
+            <el-radio-group v-model="selectedFlavors[flavor.name]" v-if="flavor.value">
               <el-radio 
                 v-for="value in flavor.value.split(',')" 
                 :key="value" 
@@ -38,6 +38,7 @@
                 {{ value }}
               </el-radio>
             </el-radio-group>
+            <div v-else class="no-flavor">暂无口味选择</div>
           </div>
         </div>
       </div>
@@ -63,6 +64,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
+import {getDishDetailAPI} from '@/api/menu'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import axios from 'axios'
@@ -70,6 +72,23 @@ import axios from 'axios'
 const router = useRouter()
 const route = useRoute()
 const dishId = route.params.id as string
+const categoryId = route.query.categoryId // 获取URL中的分类ID参数
+
+// 处理返回按钮点击
+const handleBack = () => {
+  // 从localStorage获取上次选中的分类ID
+  const lastCategoryId = localStorage.getItem('lastCategoryId')
+  
+  if (lastCategoryId) {
+    console.log('从localStorage获取的分类ID:', lastCategoryId)
+    router.push({
+      path: '/menu',
+      query: { activeCategory: lastCategoryId }
+    })
+  } else {
+    router.back()
+  }
+}
 
 const dish = ref<any>(null)
 const loading = ref(true)
@@ -81,14 +100,20 @@ const selectedFlavors = reactive<Record<string, string>>({})
 const getDishDetail = async () => {
   try {
     loading.value = true
-    const res = await axios.get(`/dish/${dishId}`)
+    const res = await getDishDetailAPI(dishId)
     dish.value = res.data.data
     
     // 初始化口味选择
     if (dish.value.flavors && dish.value.flavors.length > 0) {
       dish.value.flavors.forEach((flavor: any) => {
-        const values = flavor.value.split(',')
-        selectedFlavors[flavor.name] = values[0] // 默认选择第一个口味
+        // 添加对null值的检查
+        if (flavor.value) {
+          const values = flavor.value.split(',')
+          selectedFlavors[flavor.name] = values[0] // 默认选择第一个口味
+        } else {
+          // 如果value为null，设置一个默认值或者跳过
+          selectedFlavors[flavor.name] = '默认口味' // 或者其他合适的默认值
+        }
       })
     }
   } catch (error) {

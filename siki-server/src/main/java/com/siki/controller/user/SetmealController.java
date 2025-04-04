@@ -4,9 +4,12 @@ import com.siki.constant.StatusConstant;
 import com.siki.entity.Setmeal;
 import com.siki.result.Result;
 import com.siki.service.SetmealService;
+import com.siki.utils.CacheClient;
 import com.siki.vo.DishItemVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -16,16 +19,24 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import static com.siki.constant.RedisConstants.CACHE_SETMEAL_KEY;
+import static com.siki.constant.RedisConstants.CACHE_SETMEAL_TTL;
 
 @RestController("userSetmealController")
 @RequestMapping("/user/setmeal")
 @Api(tags = "C端-套餐浏览接口")
 public class SetmealController {
+    private static final Logger log = LoggerFactory.getLogger(SetmealController.class);
     @Autowired
     private SetmealService setmealService;
 
     @Autowired
     private RedisTemplate redisTemplate;
+
+    @Autowired
+    private CacheClient cacheClient;
 
     /**
      * 条件查询
@@ -35,24 +46,22 @@ public class SetmealController {
      */
     @GetMapping("/list")
     @ApiOperation("根据分类id查询套餐")
-    @Cacheable(cacheNames = "setmealCache", key = "#categoryId")
     public Result<List<Setmeal>> list(Long categoryId) {
-        //查询redis
-        //构造redis的key
-        String key = "setmealCache::" + categoryId;
-        //查询redis中是否存在套餐数据
-        List<Setmeal> list = (List<Setmeal>) redisTemplate.opsForValue().get(key);
-        //如果存在，直接返回
-        if (list != null) {
-            return Result.success(list);
-        }
-        //如果不存在，查询数据库，然后存入redis
+        log.info("开始查询分类{}的套餐", categoryId);
+
+        //使用缓存穿透解决方案
+        List<Setmeal> list = cacheClient.queryWithPassThrough(CACHE_SETMEAL_KEY, categoryId, List.class, this::listWithFlavor, CACHE_SETMEAL_TTL, TimeUnit.MINUTES);
+        return Result.success(list);
+    }
+
+
+    public List<Setmeal> listWithFlavor(Long categoryId) {
+        //查询数据库
         Setmeal setmeal = new Setmeal();
         setmeal.setCategoryId(categoryId);
         setmeal.setStatus(StatusConstant.ENABLE);
-
-        list = setmealService.list(setmeal);
-        return Result.success(list);
+        List<Setmeal> list = setmealService.list(setmeal);
+        return list;
     }
 
     /**

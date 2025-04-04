@@ -37,7 +37,7 @@ public class CacheClient {
         RedisData redisData = new RedisData();
         redisData.setExpireTime(LocalDateTime.now().plusSeconds(unit.toSeconds(time)));
         redisData.setData(value);
-        redisTemplate.opsForValue().set(key, JSONUtil.toJsonStr(redisData));
+        redisTemplate.opsForValue().set(key, redisData);
     }
 
     public <R, ID> R queryWithPassThrough(String keyPrefix, ID id, Class<R> type, Function<ID, R> dbFallback, Long time, TimeUnit unit) {
@@ -66,24 +66,50 @@ public class CacheClient {
         }
     }
 
-    public <R, ID> List<R>  queryWithLogicalExpire(String keyPrefix1, ID id, Class<R> type, Function<ID, List<R>> dbFallback, Long time, TimeUnit unit, String keyPrefix2) {
+    public <R, ID> R queryWithLogicalExpire(String keyPrefix1, ID id, Class<R> type, Function<ID, R> dbFallback, Long time, TimeUnit unit, String keyPrefix2) {
         String key = keyPrefix1 + id;
         // 从缓存中获取
-        String json = redisTemplate.opsForValue().get(key).toString();
+        Object value = redisTemplate.opsForValue().get(key);
         // 如果缓存中有数据，直接返回
-        if (StrUtil.isBlank(json)) {
+        if (value == null) {
             return null;
         }
-        //命中，需要先把json转为对象
-        RedisData redisData = JSONUtil.toBean(json, RedisData.class);
-        R r = JSONUtil.toBean((JSONObject) redisData.getData(), type);
-        LocalDateTime expireTime = redisData.getExpireTime();
-        //判断是否过期
-        if (expireTime.isAfter(LocalDateTime.now())) {
-            //未过期，直接返回
-            return (List<R>) r;
+        
+        // 命中，判断获取的数据类型
+        RedisData redisData;
+        if (value instanceof RedisData) {
+            // 如果已经是 RedisData 类型，直接使用
+            redisData = (RedisData) value;
+        } else if (value instanceof String) {
+            // 如果是字符串，需要转换
+            redisData = JSONUtil.toBean((String) value, RedisData.class);
+        } else {
+            // 其他情况，可能是序列化问题，记录日志并返回 null
+            log.error("缓存数据类型错误: {}", value.getClass().getName());
+            return null;
         }
-        //过期，需要缓存重建
+        
+        // 获取数据并转换为目标类型
+        R r;
+        if (redisData.getData() instanceof JSONObject) {
+            r = JSONUtil.toBean((JSONObject) redisData.getData(), type);
+        } else {
+            try {
+                r = (R) redisData.getData();
+            } catch (ClassCastException e) {
+                log.error("数据类型转换错误", e);
+                return null;
+            }
+        }
+        
+        LocalDateTime expireTime = redisData.getExpireTime();
+        // 判断是否过期
+        if (expireTime.isAfter(LocalDateTime.now())) {
+            // 未过期，直接返回
+            return r;
+        }
+        
+        // 过期，需要缓存重建
         //尝试获取锁
         String lockKey = keyPrefix2 + id;
         boolean isLock = tryLock(lockKey);
@@ -93,7 +119,7 @@ public class CacheClient {
             CACHE_REBUILD_POOL.submit(() -> {
                 //查询店铺数据
                 try {
-                    List<R> r1 = dbFallback.apply(id);
+                    R r1 = dbFallback.apply(id);
                     this.setWithLogicalExpire(key, r1, time, unit);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
@@ -104,7 +130,7 @@ public class CacheClient {
             });
         }
         //返回过期的商品信息
-        return (List<R>) r;
+        return r;
     }
 
     // 获取锁
