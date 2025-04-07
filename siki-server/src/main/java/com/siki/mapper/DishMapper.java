@@ -97,4 +97,7 @@ public interface DishMapper {
      * @return
      */
     Integer countByMap(Map map);
+
+    @Select("select * from dish where is_hot = 1")
+    List<Dish> hotDishDisplay();
 }

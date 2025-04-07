@@ -14,6 +14,19 @@ export const addDishAPI = (params: any) => {
 }
 
 /**
+ * 添加热点菜品
+ * @param params 添加热点菜品的DTO对象
+ * @returns
+ */
+export const addHotDishAPI = (params: any) => {
+  return request({
+    url: '/dish/hotdish',
+    method: 'post',
+    data: { ...params }
+  })
+}
+
+/**
  * 获取菜品分页列表
  * @param params pageData
  * @returns

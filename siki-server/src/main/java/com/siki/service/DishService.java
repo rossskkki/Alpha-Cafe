@@ -61,4 +61,8 @@ public interface DishService {
      * @return
      */
     List<DishVO> listWithFlavor(Dish dish);
+
+    DishVO saveHotWithFlavor(DishDTO dishDTO);
+
+    List<DishVO> hotDishDisplay();
 }

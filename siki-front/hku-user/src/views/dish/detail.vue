@@ -64,7 +64,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
-import {getDishDetailAPI} from '@/api/menu'
+import {getDishDetailAPI, getHotDishDetailAPI} from '@/api/menu'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import axios from 'axios'
@@ -72,6 +72,7 @@ import axios from 'axios'
 const router = useRouter()
 const route = useRoute()
 const dishId = route.params.id as string
+const isHotDish = route.query.isHot as string
 const categoryId = route.query.categoryId // 获取URL中的分类ID参数
 
 // 处理返回按钮点击
@@ -100,7 +101,14 @@ const selectedFlavors = reactive<Record<string, string>>({})
 const getDishDetail = async () => {
   try {
     loading.value = true
-    const res = await getDishDetailAPI(dishId)
+    let res
+    console.log('isHotDish:', isHotDish)
+    if (isHotDish === '0') {
+      res = await getDishDetailAPI(dishId)
+    }else{
+      res = await getHotDishDetailAPI(dishId)
+    }
+    
     dish.value = res.data.data
     
     // 初始化口味选择

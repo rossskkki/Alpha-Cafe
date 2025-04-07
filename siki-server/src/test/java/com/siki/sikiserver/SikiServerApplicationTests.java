@@ -15,6 +15,7 @@ import org.springframework.test.context.TestPropertySource;
 
 import java.util.concurrent.TimeUnit;
 
+import static com.siki.constant.RedisConstants.CACHE_DISHDETAIL_KEY;
 import static com.siki.constant.RedisConstants.CACHE_DISH_KEY;
 
 @SpringBootTest
@@ -32,6 +33,6 @@ class SikiServerApplicationTests {
     @Test
     void testSaveShop() throws InterruptedException {
         DishVO dish = dishService.getByIdWithFlavor(75L);
-        cacheClient.setWithLogicalExpire(CACHE_DISH_KEY+75L, dish, 30L, TimeUnit.MINUTES);
+        cacheClient.setWithLogicalExpire(CACHE_DISHDETAIL_KEY+75L, dish, 30L, TimeUnit.MINUTES);
     }
 }

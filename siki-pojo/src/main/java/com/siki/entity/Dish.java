@@ -36,6 +36,9 @@ public class Dish implements Serializable {
     //描述信息
     private String description;
 
+    //热点菜品 0 否 1 是
+    private Integer isHot;
+
     //0 停售 1 起售
     private Integer status;
 

@@ -24,6 +24,32 @@
         {{ item.name }}
       </div>
     </div>
+    
+    <!-- 热点菜品区域 -->
+    <div class="hot-dish-section" v-if="hotDishList.length > 0">
+      <div class="section-title">
+        <span class="title-text">热点菜品</span>
+        <span class="title-tag">HOT</span>
+      </div>
+      <div class="hot-dish-list">
+        <div v-for="dish in hotDishList" :key="dish.id" class="hot-dish-item" @click="handleHotDishClick(dish)">
+          <div class="hot-dish-img">
+            <img :src="dish.image" :alt="dish.name" />
+            <div class="hot-tag">热门</div>
+          </div>
+          <div class="hot-dish-info">
+            <div class="hot-dish-name">{{ dish.name }}</div>
+            <div class="hot-dish-desc">{{ dish.description }}</div>
+            <div class="hot-dish-price">¥{{ dish.price }}</div>
+          </div>
+          <div class="hot-dish-action">
+            <el-button type="primary" circle @click.stop="addToCart(dish)">
+              <el-icon><Plus /></el-icon>
+            </el-button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- 菜品列表 -->
     <div class="menu-list" v-if="activeCategory">
@@ -196,7 +222,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getCategoryListAPI, getDishListAPI, getSetmealListAPI } from '@/api/menu'
+import { getCategoryListAPI, getDishListAPI, getSetmealListAPI, getHotDishListAPI } from '@/api/menu'
 import { addToCartAPI, getCartListAPI, clearCartAPI, deleteCartItemAPI } from '@/api/cart'
 import { submitOrderAPI } from '@/api/order'
 import { useCartStore } from '@/store/cart'
@@ -236,6 +262,8 @@ const activeCategory = ref<number | null>(null)
 const dishList = ref<any[]>([])
 // 套餐列表
 const setmealList = ref<any[]>([])
+// 热点菜品列表
+const hotDishList = ref<any[]>([])
 
 // 购物车详情显示控制
 const showCartDetail = ref(false)
@@ -330,7 +358,19 @@ const handleSearchClear = () => {
 const handleDishClick = (dish: any) => {
   router.push({
     path: `/dish/${dish.id}`,
-    query: { categoryId: activeCategory.value }
+    query: { categoryId: activeCategory.value,
+      isHot: dish.isHot
+     }
+  })
+}
+
+//处理热点菜品点击
+const handleHotDishClick = (dish: any) => {
+  router.push({
+    path: `/dish/${dish.id}`,
+    query: {categoryId: activeCategory.value,
+            isHot: dish.isHot
+     }
   })
 }
 
@@ -463,8 +503,22 @@ const handleSubmitOrder = async () => {
   }
 }
 
+// 获取热点菜品列表
+const getHotDishList = async () => {
+  try {
+    const res = await getHotDishListAPI()
+    hotDishList.value = res.data.data || []
+  } catch (error) {
+    console.error('获取热点菜品失败', error)
+    ElMessage.error('获取热点菜品失败')
+  }
+}
+
 // 组件挂载时获取分类列表和购物车数据
 onMounted(() => {
+  // 获取热点菜品
+  getHotDishList()
+  
   getCategoryList().then(() => {
     // 检查URL中是否有分类ID参数
     const urlCategoryId = router.currentRoute.value.query.activeCategory // 确保参数名称一致
@@ -655,6 +709,109 @@ onMounted(() => {
   font-size: 24px;
   color: #409EFF;
   margin-right: 10px;
+}
+
+// 热点菜品区域样式
+.hot-dish-section {
+  margin-bottom: 20px;
+  background-color: #fff8f8;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
+  
+  .section-title {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    
+    .title-text {
+      font-size: 18px;
+      font-weight: bold;
+      color: #f56c6c;
+    }
+    
+    .title-tag {
+      margin-left: 8px;
+      background-color: #f56c6c;
+      color: white;
+      font-size: 12px;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+  }
+  
+  .hot-dish-list {
+    .hot-dish-item {
+      display: flex;
+      padding: 15px 0;
+      border-bottom: 1px solid #ffeeee;
+      
+      &:last-child {
+        border-bottom: none;
+      }
+      
+      .hot-dish-img {
+        position: relative;
+        width: 90px;
+        height: 90px;
+        margin-right: 15px;
+        
+        img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          border-radius: 8px;
+        }
+        
+        .hot-tag {
+          position: absolute;
+          top: 0;
+          right: 0;
+          background-color: #f56c6c;
+          color: white;
+          font-size: 12px;
+          padding: 2px 6px;
+          border-radius: 0 8px 0 8px;
+        }
+      }
+      
+      .hot-dish-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        
+        .hot-dish-name {
+          font-size: 16px;
+          font-weight: bold;
+          color: #333;
+        }
+        
+        .hot-dish-desc {
+          font-size: 12px;
+          color: #999;
+          margin: 5px 0;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+        }
+        
+        .hot-dish-price {
+          font-size: 16px;
+          color: #f56c6c;
+          font-weight: bold;
+        }
+      }
+      
+      .hot-dish-action {
+        display: flex;
+        align-items: flex-end;
+        padding-bottom: 5px;
+      }
+    }
+  }
 }
 
 .cart-info {

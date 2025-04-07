@@ -17,6 +17,7 @@ interface dish {
   status: string
   categoryId: number
   updateTime: string
+  isHot?: number // 是否为热点菜品，1是，0否
 }
 interface Category {
   id: number
@@ -67,7 +68,17 @@ const showPageList = async () => {
   const { data: res } = await getDishPageListAPI(pageData)
   console.log('菜品列表')
   console.log(res.data)
-  dishList.value = res.data.records
+  // 对菜品列表进行排序，热点菜品置顶显示
+  const records = res.data.records
+  records.sort((a, b) => {
+    // 如果a是热点菜品而b不是，a排在前面
+    if (a.isHot === 1 && b.isHot !== 1) return -1
+    // 如果b是热点菜品而a不是，b排在前面
+    if (a.isHot !== 1 && b.isHot === 1) return 1
+    // 其他情况保持原有顺序
+    return 0
+  })
+  dishList.value = records
   total.value = res.data.total
 }
 init() // 页面初始化，写在这里时的生命周期是beforecreated/created的时候
@@ -95,9 +106,14 @@ const handleSelectionChange = (val: dish[]) => {
   console.log('multiSelection.value', multiSelection.value)
 }
 
+// 设置表格行的类名，为热点菜品添加特殊样式
+const tableRowClassName = ({ row }: { row: dish }) => {
+  return row.isHot === 1 ? 'hot-dish-row' : ''
+}
+
 // 新增和修改菜品都是同一个页面，不过要根据路径传参的方式来区分
 const router = useRouter()
-const to_add_update = (row?: any) => {
+const to_add_update = (row?: any, isHot?: number) => {
   console.log('看有没有传过来，来判断要add还是update', row)
   if (row && row.id) {
     router.push({
@@ -105,8 +121,16 @@ const to_add_update = (row?: any) => {
       query: { id: row.id }
     })
   } else {
-    router.push('/dish/add')
+    router.push({
+      path: '/dish/add',
+      query: isHot ? { isHot: isHot } : {}
+    })
   }
+}
+
+// 添加热点菜品
+const to_add_hot_dish = () => {
+  to_add_update(undefined, 1)
 }
 
 // 修改菜品状态
@@ -196,8 +220,13 @@ const deleteBatch = (row?: any) => {
           <Plus />
         </el-icon>添加菜品
       </el-button>
+      <el-button size="large" class="btn" type="warning" @click="to_add_hot_dish()">
+        <el-icon style="font-size: 15px; margin-right: 10px;">
+          <Plus />
+        </el-icon>添加热点菜品
+      </el-button>
     </div>
-    <el-table class="table_box" ref="multiTableRef" :data="dishList" stripe @selection-change="handleSelectionChange">
+    <el-table class="table_box" ref="multiTableRef" :data="dishList" stripe @selection-change="handleSelectionChange" :row-class-name="tableRowClassName">
       <el-table-column type="selection" width="55" />
       <!-- <el-table-column prop="id" label="id" /> -->
       <el-table-column prop="name" label="菜名" align="center" />
@@ -304,6 +333,32 @@ img {
 
 .el-card{
   background-color: #ffe3b0;
+}
+
+/* 热点菜品行样式 */
+:deep(.hot-dish-row) {
+  background-color: #ffcccc !important;
+}
+
+/* 确保热点菜品样式覆盖斑马纹样式 */
+:deep(.el-table--striped .hot-dish-row),
+:deep(.el-table--striped .hot-dish-row.el-table__row--striped) {
+  background-color: #ffcccc !important;
+}
+
+/* 添加更高优先级选择器确保热点菜品样式生效 */
+:deep(.el-table__row.hot-dish-row) {
+  background-color: #ffcccc !important;
+}
+
+/* 确保热点菜品行的所有单元格都有红色背景 */
+:deep(.el-table__row.hot-dish-row > td) {
+  background-color: #ffcccc !important;
+}
+
+/* 鼠标悬停时的样式 */
+:deep(.el-table__row.hot-dish-row:hover > td) {
+  background-color: #ffaaaa !important;
 }
 
 </style>

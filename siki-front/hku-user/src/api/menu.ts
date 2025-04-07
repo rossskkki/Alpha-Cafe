@@ -12,6 +12,17 @@ export const getCategoryListAPI = () => {
 }
 
 /**
+ * 获取热点菜品列表
+ * @returns 
+ */
+export const getHotDishListAPI = () => {
+  return request({
+    url: '/dish/hot',
+    method: 'get'
+  })
+}
+
+/**
  * 获取菜品列表
  * @param categoryId 分类ID
  * @returns 
@@ -47,6 +58,18 @@ export const getDishDetailAPI = (id: number) => {
     url: `/dish/${id}`,
     method: 'get'
   })
+}
+
+/**
+ * 获取热点菜品详情
+ * @param id 套餐ID
+ * @returns
+ */
+export const getHotDishDetailAPI = (id: number) => {
+  return request({
+    url: `/dish/hot/${id}`,
+    method: 'get' 
+  }) 
 }
 
 /**

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { reactive, ref, watch } from 'vue'
 import SelectInput from './components/SelectInput.vue'
-import { addDishAPI, getDishByIdAPI, updateDishAPI } from '@/api/dish'
+import { addDishAPI, getDishByIdAPI, updateDishAPI, addHotDishAPI } from '@/api/dish'
 import { getCategoryPageListAPI } from '@/api/category'
 import { uploadFileAPI } from '@/api/common'
 import { useRouter, useRoute } from 'vue-router'
@@ -43,7 +43,8 @@ const form = reactive({
   description: '',
   price: '',
   status: '',
-  categoryId: ''
+  categoryId: '',
+  isHot: 0 // 是否为热点菜品，1是，0否
 })
 const count = ref(0)
 // 图片下的隐藏input框
@@ -193,7 +194,14 @@ const submit = async (keep: any) => {
     // 情况1：无路径参数，form.id保持默认值0，新增菜品
     if (form.id === 0) {
       console.log('新增菜品')
-      const res = await addDishAPI(params)
+      let res;
+      // 根据isHot字段选择不同的API接口
+      if (form.isHot === 1) {
+        console.log('新增热点菜品')
+        res = await addHotDishAPI(params)
+      } else {
+        res = await addDishAPI(params)
+      }
       if (res.data.code !== 0) {
         console.log('新增菜品失败！')
         return false
@@ -275,6 +283,11 @@ const init = async () => {
     getLeftDishFlavors()
   } else {
     console.log('新增菜品页', form.id)
+    // 检查是否是添加热点菜品
+    if (route.query.isHot !== undefined) {
+      form.isHot = parseInt(route.query.isHot as string)
+      console.log('添加热点菜品', form.isHot)
+    }
   }
 }
 
@@ -337,6 +350,9 @@ init()
         <el-select clearable v-model="form.categoryId" placeholder="选择分类类型">
           <el-option v-for="item in categoryList" :key="item.id" :label="item.name" :value="item.id" />
         </el-select>
+      </el-form-item>
+      <el-form-item label="热点菜品" :label-width="formLabelWidth" v-if="form.isHot === 1">
+        <el-tag type="danger">此菜品将作为热点菜品显示</el-tag>
       </el-form-item>
     </el-form>
     <el-form-item>

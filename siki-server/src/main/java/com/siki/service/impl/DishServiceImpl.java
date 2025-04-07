@@ -200,4 +200,44 @@ public class DishServiceImpl implements DishService {
 
         return dishVOList;
     }
+
+    @Override
+    public DishVO saveHotWithFlavor(DishDTO dishDTO) {
+        log.info("新增热点菜品：{}", dishDTO);
+        Dish dish = new Dish();
+        BeanUtils.copyProperties(dishDTO, dish);
+        //向菜品表插入一条数据
+        dishMapper.insert(dish);
+        //获取菜品id
+        Long dishId = dish.getId();
+        //向口味表插入多条数据
+        List<DishFlavor> flavors = dishDTO.getFlavors();
+        if (flavors != null && flavors.size() > 0) {
+            flavors.forEach(flavor -> {
+                flavor.setDishId(dishId);
+            });
+            dishFlavorMapper.insertBatch(flavors);
+        }
+        DishVO dishVO = new DishVO();
+        BeanUtils.copyProperties(dish, dishVO);
+        dishVO.setFlavors(flavors);
+        return dishVO;
+    }
+
+    @Override
+    public List<DishVO> hotDishDisplay() {
+        //查询数据库
+        List<Dish> dishList = dishMapper.hotDishDisplay();
+        List<DishVO> dishVOList = new ArrayList<>();
+        for (Dish d : dishList) {
+            DishVO dishVO = new DishVO();
+            BeanUtils.copyProperties(d,dishVO);
+            //根据菜品id查询对应的口味
+            List<DishFlavor> flavors = dishFlavorMapper.getByDishId(d.getId());
+            dishVO.setFlavors(flavors);
+            dishVOList.add(dishVO);
+        }
+        return dishVOList;
+    }
+
 }

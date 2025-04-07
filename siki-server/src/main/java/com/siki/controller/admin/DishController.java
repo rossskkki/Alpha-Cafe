@@ -6,6 +6,7 @@ import com.siki.entity.Dish;
 import com.siki.result.PageResult;
 import com.siki.result.Result;
 import com.siki.service.DishService;
+import com.siki.utils.CacheClient;
 import com.siki.vo.DishVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -16,6 +17,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import static com.siki.constant.RedisConstants.*;
 
 /**
  * 菜品控制器
@@ -31,6 +35,9 @@ public class DishController {
     @Autowired
     private RedisTemplate redisTemplate;
 
+    @Autowired
+    private CacheClient cacheClient;
+
     /**
      * 新增菜品
      * @param dishDTO
@@ -42,7 +49,7 @@ public class DishController {
         log.info("新增菜品：{}", dishDTO);
         dishService.saveWithFlavor(dishDTO);
         // 删除缓存
-        String key = "dish_" + dishDTO.getCategoryId();
+        String key = CACHE_DISH_KEY + dishDTO.getCategoryId();
         redisTemplate.delete(key);
         return Result.success();
     }
@@ -71,7 +78,8 @@ public class DishController {
         log.info("删除菜品：{}", ids);
         dishService.deleteBatch(ids);
         // 删除缓存
-        clearCache("dish_*");
+        clearCache(CACHE_DISH_KEY);
+        clearCache(CACHE_HOTDISHDETAIL_KEY);
         return Result.success();
     }
 
@@ -99,7 +107,7 @@ public class DishController {
         log.info("修改菜品：{}", dishDTO);
         dishService.updateWithFlavor(dishDTO);
         // 删除缓存
-        clearCache("dish_*");
+        clearCache(CACHE_DISH_KEY);
         return Result.success();
     }
 
@@ -127,7 +135,29 @@ public class DishController {
         log.info("修改菜品状态：id={}, status={}", id, status);
         dishService.updateStatus(id, status);
         // 删除缓存
-        clearCache("dish_*");
+        clearCache(CACHE_DISH_KEY);
+        return Result.success();
+    }
+
+    /**
+     * 新增热点菜品
+     * @return
+     */
+    @PostMapping("/hotdish")
+    @ApiOperation("新增热点菜品")
+    public Result addHotdish(@RequestBody DishDTO dishDTO) {
+        log.info("新增热点菜品：{}", dishDTO);
+        // 新增热点菜品
+        DishVO dish = dishService.saveHotWithFlavor(dishDTO);
+        //获取现有的热点菜品
+        List<DishVO> hotDishList = dishService.hotDishDisplay();
+        // 删除缓存
+        String key = CACHE_DISH_KEY + dishDTO.getCategoryId();
+        redisTemplate.delete(key);
+        // 缓存预热
+        cacheClient.setWithLogicalExpire(CACHE_HOTDISHDETAIL_KEY+dish.getId(), dish, 10L, TimeUnit.SECONDS);
+        // 设置热点菜品的缓存
+        cacheClient.setWithLogicalExpire(CACHE_HOTDISH_KEY+0, hotDishList, 10L, TimeUnit.SECONDS);
         return Result.success();
     }
 

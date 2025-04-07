@@ -38,4 +38,8 @@ public class DishVO implements Serializable {
     private List<DishFlavor> flavors = new ArrayList<>();
 
     //private Integer copies;
+
+    //热点菜品 0 否 1 是
+    private Integer isHot;
+
 }
