@@ -1,5 +1,5 @@
 <template>
-  <div class="cart-container">
+  <div>
     <div v-if="cartStore.cartList.length > 0" class="cart-content">
       <!-- 购物车列表 -->
       <div class="cart-list">
@@ -47,7 +47,7 @@
     <el-dialog v-model="checkoutDialogVisible" title="订单确认" width="90%">
       <div class="checkout-dialog">
         <!-- 地址选择 -->
-        <div class="address-section">
+        <!-- <div class="address-section">
           <div class="section-title">配送地址</div>
           <div v-if="selectedAddress" class="selected-address" @click="handleSelectAddress">
             <div class="address-info">
@@ -60,7 +60,7 @@
             <span>请选择配送地址</span>
             <el-icon><ArrowRight /></el-icon>
           </div>
-        </div>
+        </div> -->
         
         <!-- 订单商品 -->
         <div class="order-items">
@@ -101,7 +101,6 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useCartStore } from '@/store/cart'
 import { updateCartItemAPI, deleteCartItemAPI, clearCartAPI } from '@/api/cart'
-import { getAddressListAPI } from '@/api/address'
 import { submitOrderAPI } from '@/api/order'
 
 const router = useRouter()
@@ -214,27 +213,27 @@ const handleClearCart = async () => {
 // 去结算
 const handleCheckout = () => {
   // 检查是否有地址
-  if (addressList.value.length === 0) {
-    ElMessageBox.confirm('您还没有添加收货地址，是否前往添加？', '提示', {
-      confirmButtonText: '去添加',
-      cancelButtonText: '取消',
-      type: 'warning'
-    }).then(() => {
-      router.push('/address/edit')
-    }).catch(() => {
-      // 取消操作
-    })
-    return
-  }
+  // if (addressList.value.length === 0) {
+  //   ElMessageBox.confirm('您还没有添加收货地址，是否前往添加？', '提示', {
+  //     confirmButtonText: '去添加',
+  //     cancelButtonText: '取消',
+  //     type: 'warning'
+  //   }).then(() => {
+  //     router.push('/address/edit')
+  //   }).catch(() => {
+  //     // 取消操作
+  //   })
+  //   return
+  // }
   
   // 打开结算弹窗
   checkoutDialogVisible.value = true
 }
 
 // 选择地址
-const handleSelectAddress = () => {
-  router.push('/address')
-}
+// const handleSelectAddress = () => {
+//   router.push('/address')
+// }
 
 // 提交订单
 const handleSubmitOrder = async () => {
@@ -274,6 +273,7 @@ onMounted(() => {
 <style scoped lang="less">
 .cart-container {
   padding: 10px;
+  padding-bottom: 70px; /* 为底部导航栏留出空间 */
 }
 
 .cart-content {
@@ -339,12 +339,17 @@ onMounted(() => {
 }
 
 .cart-footer {
-  padding: 15px 0;
+  padding: 15px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   background-color: #fff;
   border-top: 1px solid #eee;
+  position: fixed;
+  bottom: 60px;
+  left: 0;
+  right: 0;
+  z-index: 99;
   
   .cart-total {
     font-size: 16px;

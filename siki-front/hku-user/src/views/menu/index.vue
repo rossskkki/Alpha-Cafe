@@ -1,7 +1,14 @@
 <template>
-  <div class="menu-container">
+  <div class="menu-container">    
+    <!-- 悬浮购物车按钮 -->
+    <div class="floating-cart" @click="showCartDrawer = true">
+      <el-badge :value="cartStore.cartCount" :max="99">
+        <el-icon><ShoppingCart /></el-icon>
+      </el-badge>
+      <div class="cart-price">¥{{ cartStore.cartTotal }}</div>
+    </div>
     <!-- 顶部搜索栏 -->
-    <div class="search-bar">
+    <!-- <div class="search-bar">
       <el-input
         v-model="searchKeyword"
         placeholder="搜索菜品"
@@ -10,7 +17,7 @@
         @clear="handleSearchClear"
         @input="handleSearch"
       />
-    </div>
+    </div> -->
 
     <!-- 分类列表 -->
     <div class="category-list">
@@ -94,33 +101,15 @@
       <!-- 无数据提示 -->
       <el-empty v-if="dishList.length === 0 && setmealList.length === 0" description="暂无数据" />
     </div>
-    
-    <!-- 购物车底部栏 -->
-    <div class="cart-bottom-bar" v-if="cartStore.cartCount > 0">
-      <div class="cart-info" @click="showCartDrawer = true">
-        <el-badge :value="cartStore.cartCount" :max="99">
-          <el-icon class="cart-icon"><ShoppingCart /></el-icon>
-        </el-badge>
-        <div class="cart-summary">
-          <div class="cart-items-count">{{ cartStore.cartCount }}件商品</div>
-          <div class="cart-total-price">¥{{ cartStore.cartTotal }}</div>
-        </div>
-      </div>
-      <el-button type="primary" class="checkout-btn" @click="handleCheckout">去结算</el-button>
-    </div>
+  
     
     <!-- 购物车抽屉 -->
-    <el-drawer
-      v-model="showCartDrawer"
-      title="购物车"
-      direction="btt"
-      size="60%"
-    >
+    <el-drawer v-model="showCartDrawer" direction="rtl" size="90%">
       <div v-if="cartStore.cartList.length > 0" class="cart-content">
         <!-- 购物车列表 -->
         <div class="cart-list">
           <div class="cart-header">
-            <div class="cart-title">已选商品</div>
+            <div class="cart-title">购物车</div>
             <div class="cart-clear" @click="handleClearCart">清空购物车</div>
           </div>
           <div class="cart-items">
@@ -143,13 +132,20 @@
         </div>
         
         <!-- 结算区域 -->
-        <div class="cart-footer">
-          <div class="cart-total-info">
+        <div class="cart-footer drawer-cart-footer">
+          <div class="cart-total">
             <span>合计：</span>
             <span class="total-price">¥{{ cartStore.cartTotal }}</span>
           </div>
           <el-button type="primary" class="checkout-btn" @click="handleCheckout">去结算</el-button>
         </div>
+      </div>
+      
+      <!-- 空购物车提示 -->
+      <div v-else class="empty-cart">
+        <el-empty description="购物车空空如也，去添加商品吧~">
+          <el-button type="primary" @click="showCartDrawer = false">去点餐</el-button>
+        </el-empty>
       </div>
     </el-drawer>
     
@@ -234,7 +230,7 @@ const cartStore = useCartStore()
 // 搜索关键词
 const searchKeyword = ref('')
 
-// 购物车抽屉
+// 购物车相关功能
 const showCartDrawer = ref(false)
 
 // 结算弹窗
@@ -399,77 +395,90 @@ const addToCart = async (item: any, isSetmeal = false) => {
   }
 }
 
+// 增加商品数量
+const handleIncreaseItem = async (item: any) => {
+  try {
+    const params = {
+      id: item.id,
+      number: item.number + 1
+    }
+    const res = await updateCartItemAPI(params)
+    if (res.data.code === 0) {
+      // 更新购物车数据
+      cartStore.getCartList()
+    }
+  } catch (error) {
+    console.error('增加商品数量失败', error)
+  }
+}
+
+// 减少商品数量
+const handleDecreaseItem = async (item: any) => {
+  try {
+    if (item.number === 1) {
+      // 如果数量为1，则删除该商品
+      await handleDeleteItem(item)
+    } else {
+      const params = {
+        id: item.id,
+        number: item.number - 1
+      }
+      const res = await updateCartItemAPI(params)
+      if (res.data.code === 0) {
+        // 更新购物车数据
+        cartStore.getCartList()
+      }
+    }
+  } catch (error) {
+    console.error('减少商品数量失败', error)
+  }
+}
+
+// 删除商品
+const handleDeleteItem = async (item: any) => {
+  try {
+    const res = await deleteCartItemAPI(item.id)
+    if (res.data.code === 0) {
+      ElMessage.success('删除成功')
+      // 更新购物车数据
+      cartStore.getCartList()
+    }
+  } catch (error) {
+    console.error('删除商品失败', error)
+  }
+}
+
 // 清空购物车
 const handleClearCart = async () => {
   try {
-    await ElMessageBox.confirm('确定清空购物车吗？', '提示', {
+    ElMessageBox.confirm('确定要清空购物车吗？', '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning'
+    }).then(async () => {
+      const res = await clearCartAPI()
+      if (res.data.code === 0) {
+        ElMessage.success('清空成功')
+        // 更新购物车数据
+        cartStore.getCartList()
+      }
+    }).catch(() => {
+      // 取消操作
     })
-    
-    await clearCartAPI()
-    cartStore.getCartList()
-    ElMessage.success('购物车已清空')
-    
-    if (showCartDrawer.value) {
-      showCartDrawer.value = false
-    }
   } catch (error) {
     console.error('清空购物车失败', error)
   }
 }
 
-// 减少购物车商品数量
-const handleDecreaseItem = async (item: any) => {
-  if (item.number <= 1) {
-    // 如果数量为1，则删除该商品
-    try {
-      await deleteCartItemAPI(item.id)
-      await cartStore.getCartList() // 刷新购物车数据
-      ElMessage.success('商品已移除')
-    } catch (error) {
-      console.error('移除商品失败', error)
-      ElMessage.error('移除商品失败')
-    }
-  } else {
-    // 数量大于1，减少数量
-    try {
-      await addToCartAPI({
-        id: item.id,
-        number: item.number - 1
-      })
-      await cartStore.getCartList() // 刷新购物车数据
-    } catch (error) {
-      console.error('减少数量失败', error)
-      ElMessage.error('减少数量失败')
-    }
-  }
-}
-
-// 增加购物车商品数量
-const handleIncreaseItem = async (item: any) => {
-  try {
-    await addToCartAPI({
-      id: item.id,
-      number: item.number + 1
-    })
-    await cartStore.getCartList() // 刷新购物车数据
-  } catch (error) {
-    console.error('增加数量失败', error)
-    ElMessage.error('增加数量失败')
-  }
-}
-
 // 去结算
 const handleCheckout = () => {
-  if (cartStore.cartList.length === 0) {
-    ElMessage.warning('购物车为空，请先添加商品')
-    return
-  }
+  // 打开结算弹窗
   checkoutDialogVisible.value = true
+  // 关闭购物车抽屉
   showCartDrawer.value = false
 }
+
+// 结算弹窗
 
 // 生成随机取餐码
 const generatePickupCode = () => {
@@ -540,6 +549,87 @@ onMounted(() => {
 .menu-container {
   padding: 10px;
   padding-bottom: 70px;
+  
+  /* 购物车抽屉样式 */
+  .cart-content {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 120px);
+  }
+  
+  .cart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+    
+    .cart-title {
+      font-size: 18px;
+      font-weight: bold;
+    }
+    
+    .cart-clear {
+      color: #999;
+      font-size: 14px;
+    }
+  }
+  
+  .cart-items {
+    flex: 1;
+    overflow-y: auto;
+    
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 0;
+      border-bottom: 1px solid #eee;
+      
+      .item-info {
+        flex: 1;
+        
+        .item-name {
+          font-size: 16px;
+          margin-bottom: 5px;
+        }
+        
+        .item-price {
+          color: #f56c6c;
+          font-weight: bold;
+        }
+      }
+      
+      .item-action {
+        display: flex;
+        align-items: center;
+        
+        .item-count {
+          margin: 0 10px;
+          min-width: 20px;
+          text-align: center;
+        }
+      }
+    }
+  }
+  
+  .drawer-cart-footer {
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #fff;
+    z-index: 10;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .empty-cart {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: calc(100vh - 120px);
+  }
   
   // 购物车底部栏
   .cart-bottom-bar {
@@ -940,6 +1030,45 @@ onMounted(() => {
     font-size: 16px;
     font-weight: bold;
     margin-bottom: 10px;
+  }
+}
+
+/* 悬浮购物车按钮样式 */
+.floating-cart {
+  position: fixed;
+  right: 20px;
+  bottom: 80px;
+  width: 60px;
+  height: 60px;
+  background-color: #409EFF;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 99;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  }
+  
+  .el-icon {
+    font-size: 24px;
+    margin-bottom: 2px;
+  }
+  
+  .cart-price {
+    font-size: 12px;
+    font-weight: bold;
+  }
+  
+  .el-badge {
+    margin-bottom: 2px;
   }
   
   .table-section {
