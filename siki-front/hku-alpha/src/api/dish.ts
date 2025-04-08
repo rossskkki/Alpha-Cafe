@@ -92,3 +92,15 @@ export const deleteDishesAPI = (ids: string) => {
   })
 }
 
+/**
+ * 根据ids批量删除热点菜品
+ * @param ids 菜品ids
+ * @returns
+ */
+export const deleteHotDishesAPI = (ids: string) => {
+  return request({
+    url: '/dish/hotdish',
+    method: 'delete',
+    params: { ids }
+  })
+}

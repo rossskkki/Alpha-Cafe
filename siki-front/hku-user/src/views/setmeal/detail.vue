@@ -1,7 +1,7 @@
 <template>
   <div class="setmeal-detail-container">
     <div class="page-header">
-      <el-page-header @back="router.back()" title="" content="套餐详情" />
+      <el-page-header @back="handleBack" title="返回" content="套餐详情" />
     </div>
     
     <div v-if="loading" class="loading-container">
@@ -62,6 +62,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { getSetmealDetailAPI } from '@/api/menu'
 import axios from 'axios'
 
 const router = useRouter()
@@ -73,11 +74,27 @@ const loading = ref(true)
 const quantity = ref(1)
 const addingToCart = ref(false)
 
+// 处理返回按钮点击
+const handleBack = () => {
+  // 从localStorage获取上次选中的分类ID
+  const lastCategoryId = localStorage.getItem('lastCategoryId')
+  
+  if (lastCategoryId) {
+    console.log('从localStorage获取的分类ID:', lastCategoryId)
+    router.push({
+      path: '/menu',
+      query: { activeCategory: lastCategoryId }
+    })
+  } else {
+    router.back()
+  }
+}
+
 // 获取套餐详情
 const getSetmealDetail = async () => {
   try {
     loading.value = true
-    const res = await axios.get(`/setmeal/${setmealId}`)
+    const res = await getSetmealDetailAPI(setmealId)
     setmeal.value = res.data.data
   } catch (error) {
     console.error('获取套餐详情失败', error)

@@ -78,7 +78,7 @@ public class DishController {
     @GetMapping("/hot/{id}")
     @ApiOperation("根据id查询热点菜品")
     public Result<DishVO> hotdishDisplay(@PathVariable Long id) {
-        log.info("开始查询菜品id为{}的热点菜品", id);
+        log.info("开始查询id为{}的热点菜品", id);
         //使用缓存击穿解决方案（逻辑过期）
         DishVO dish = cacheClient.queryWithLogicalExpire(CACHE_HOTDISHDETAIL_KEY, id, DishVO.class, this::getByIdWithFlavor, CACHE_DISH_TTL, TimeUnit.SECONDS, LOCK_DISH_KEY);
         return Result.success(dish);

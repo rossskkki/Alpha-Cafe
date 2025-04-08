@@ -202,6 +202,7 @@ public class DishServiceImpl implements DishService {
     }
 
     @Override
+    @Transactional
     public DishVO saveHotWithFlavor(DishDTO dishDTO) {
         log.info("新增热点菜品：{}", dishDTO);
         Dish dish = new Dish();

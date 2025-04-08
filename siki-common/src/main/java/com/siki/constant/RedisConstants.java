@@ -15,6 +15,7 @@ public class RedisConstants {
     public static final String CACHE_DISHDETAIL_KEY = "cache:dishdetail:";
     public static final String CACHE_HOTDISHDETAIL_KEY = "cache:hotdishdetail:";
     public static final String CACHE_SETMEAL_KEY = "cache:setmeal:";
+    public static final String CACHE_SETMEALDETAIL_KEY = "cache:setmealdetail:";
     public static final String CACHE_SHOP_TYPE_KEY = "cache:type:";
     public static final Long CACHE_SHOP_TYPE_TTL = 30L;
 

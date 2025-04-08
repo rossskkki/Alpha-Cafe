@@ -1,7 +1,7 @@
 <script setup lang="ts">
 
 import { reactive, ref } from 'vue'
-import { getDishPageListAPI, updateDishStatusAPI, deleteDishesAPI } from '@/api/dish'
+import { getDishPageListAPI, updateDishStatusAPI, deleteDishesAPI, deleteHotDishesAPI} from '@/api/dish'
 import { getCategoryPageListAPI } from '@/api/category'
 import { ElMessage, ElMessageBox, ElTable } from 'element-plus'
 import { useRouter } from 'vue-router'
@@ -172,20 +172,39 @@ const deleteBatch = (row?: any) => {
         }
         // 拿到当前 multiSelection.value 的所有id，然后调用批量删除接口
         let ids: any = []
+        let hotids: any = []
         multiSelection.value.map(item => {
-          ids.push(item.id)
+          if (item.isHot === 1) {
+            hotids.push(item.id)
+          } else {
+            ids.push(item.id)
+          }
         })
         ids = ids.join(',')
+        hotids = hotids.join(',')
         console.log('ids', ids)
-        let res = await deleteDishesAPI(ids)
-        if (res.data.code != 0) return
+        console.log('hotids', hotids)
+        let res;
+        if (ids) {
+          res = await deleteDishesAPI(ids)
+          if (res.data.code != 0) return
+        }
+        if (hotids) {
+          res = await deleteHotDishesAPI(hotids)
+          if (res.data.code != 0) return
+        }
       }
       // 2. 传入行数据，单个删除
       else {
         console.log('id包装成数组，然后调用批量删除接口')
         console.log(row.id)
-        let res = await deleteDishesAPI(row.id)
-        if (res.data.code != 0) return
+        if (row.isHot === 1) {
+          let res = await deleteHotDishesAPI(row.id)
+          if (res.data.code!= 0) return 
+        }else {
+          let res = await deleteDishesAPI(row.id)
+          if (res.data.code!= 0) return
+        }
       }
       // 删除后刷新页面，更新数据
       showPageList()

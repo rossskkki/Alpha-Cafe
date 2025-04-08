@@ -6,6 +6,7 @@ import com.siki.result.Result;
 import com.siki.service.SetmealService;
 import com.siki.utils.CacheClient;
 import com.siki.vo.DishItemVO;
+import com.siki.vo.SetmealVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
@@ -21,8 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static com.siki.constant.RedisConstants.CACHE_SETMEAL_KEY;
-import static com.siki.constant.RedisConstants.CACHE_SETMEAL_TTL;
+import static com.siki.constant.RedisConstants.*;
 
 @RestController("userSetmealController")
 @RequestMapping("/user/setmeal")
@@ -40,7 +40,6 @@ public class SetmealController {
 
     /**
      * 条件查询
-     *
      * @param categoryId
      * @return
      */
@@ -75,5 +74,28 @@ public class SetmealController {
     public Result<List<DishItemVO>> dishList(@PathVariable("id") Long id) {
         List<DishItemVO> list = setmealService.getDishItemById(id);
         return Result.success(list);
+    }
+
+    /**
+     * 根据id查询套餐
+     * @param id
+     * @return
+     */
+    @GetMapping("/{id}")
+    @ApiOperation("根据id查询套餐")
+    public Result<SetmealVO> getById(@PathVariable Long id) {
+        log.info("开始查询套餐id为{}的套餐", id);
+        //使用缓存穿透解决方案
+        SetmealVO setmeal = cacheClient.queryWithPassThrough(CACHE_SETMEALDETAIL_KEY, id, SetmealVO.class, this::getSetmealById, CACHE_SETMEAL_TTL, TimeUnit.SECONDS);
+        return Result.success(setmeal);
+    }
+
+    private SetmealVO getSetmealById(Long id) {
+        //查询数据库
+        SetmealVO setmeal = setmealService.getById(id);
+        if (setmeal == null) {
+            return null;
+        }
+        return setmeal;
     }
 }
