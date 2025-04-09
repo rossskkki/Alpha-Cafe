@@ -35,7 +35,7 @@ public class ShoppingCartController {
     }
 
     /**
-     * 更新购物车商品数量
+     * 查询购物车商品数量
      * @return
      */
     @ApiOperation("查询购物车商品")

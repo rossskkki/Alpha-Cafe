@@ -60,3 +60,19 @@ export const updateCartItemAPI = (params: any) => {
     data: { ...params }
   })
 }
+  
+export const subCartItemAPI = (params: any) => {
+  return request({
+    url: '/shoppingCart/sub',
+    method: 'post',
+    data: { ...params }
+  })
+}
+
+export const addCartItemAPI = (params: any) => {
+  return request({
+    url: '/shoppingCart/add',
+    method: 'post',
+    data: { ...params }
+  })
+}

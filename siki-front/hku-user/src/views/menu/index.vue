@@ -2,7 +2,7 @@
   <div class="menu-container">    
     <!-- 悬浮购物车按钮 -->
     <div class="floating-cart" @click="showCartDrawer = true">
-      <el-badge :value="cartStore.cartCount" :max="99">
+      <el-badge :value="cartStore.cartCount.value" :max="99">
         <el-icon><ShoppingCart /></el-icon>
       </el-badge>
       <div class="cart-price">¥{{ cartStore.cartTotal }}</div>
@@ -219,7 +219,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getCategoryListAPI, getDishListAPI, getSetmealListAPI, getHotDishListAPI } from '@/api/menu'
-import { addToCartAPI, getCartListAPI, clearCartAPI, deleteCartItemAPI } from '@/api/cart'
+import { addToCartAPI, getCartListAPI, clearCartAPI, deleteCartItemAPI, addCartItemAPI, subCartItemAPI} from '@/api/cart'
 import { submitOrderAPI } from '@/api/order'
 import { useCartStore } from '@/store/cart'
 import { Plus, Minus, ShoppingCart } from '@element-plus/icons-vue'
@@ -400,9 +400,9 @@ const handleIncreaseItem = async (item: any) => {
   try {
     const params = {
       id: item.id,
-      number: item.number + 1
+      dishFlavor: item.dishFlavor
     }
-    const res = await updateCartItemAPI(params)
+    const res = await addCartItemAPI(params)
     if (res.data.code === 0) {
       // 更新购物车数据
       cartStore.getCartList()
@@ -415,38 +415,33 @@ const handleIncreaseItem = async (item: any) => {
 // 减少商品数量
 const handleDecreaseItem = async (item: any) => {
   try {
-    if (item.number === 1) {
-      // 如果数量为1，则删除该商品
-      await handleDeleteItem(item)
-    } else {
       const params = {
         id: item.id,
-        number: item.number - 1
+        dishFlavor: item.dishFlavor
       }
-      const res = await updateCartItemAPI(params)
+      const res = await subCartItemAPI(params)
       if (res.data.code === 0) {
         // 更新购物车数据
         cartStore.getCartList()
       }
-    }
   } catch (error) {
     console.error('减少商品数量失败', error)
   }
 }
 
 // 删除商品
-const handleDeleteItem = async (item: any) => {
-  try {
-    const res = await deleteCartItemAPI(item.id)
-    if (res.data.code === 0) {
-      ElMessage.success('删除成功')
-      // 更新购物车数据
-      cartStore.getCartList()
-    }
-  } catch (error) {
-    console.error('删除商品失败', error)
-  }
-}
+// const handleDeleteItem = async (item: any) => {
+//   try {
+//     const res = await deleteCartItemAPI(item.id)
+//     if (res.data.code === 0) {
+//       ElMessage.success('删除成功')
+//       // 更新购物车数据
+//       cartStore.getCartList()
+//     }
+//   } catch (error) {
+//     console.error('删除商品失败', error)
+//   }
+// }
 
 // 清空购物车
 const handleClearCart = async () => {
