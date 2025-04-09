@@ -137,6 +137,13 @@ const to_add_hot_dish = () => {
 const change_btn = async (row: any) => {
   console.log('要修改的行数据')
   console.log(row.id, row.status)
+  if (row.isHot === 1) {
+    ElMessage({
+      type: 'warning',
+      message: '热点菜品不能修改状态',
+    })
+    return
+  }
   await updateDishStatusAPI(row.id, row.status === 1 ? 0 : 1)
   // 修改后刷新页面，更新数据
   showPageList()

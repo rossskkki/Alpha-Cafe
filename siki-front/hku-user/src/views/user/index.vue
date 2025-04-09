@@ -14,7 +14,7 @@
       <el-divider />
       
       <div class="menu-list">
-        <div class="menu-item" @click="showOrdersDialog = true">
+        <div class="menu-item" @click="router.push('/order')">
           <el-icon><Tickets /></el-icon>
           <span>我的订单</span>
           <el-icon class="arrow-icon"><ArrowRight /></el-icon>
@@ -91,7 +91,7 @@
   </el-dialog>
 
   <!-- 订单历史对话框 -->
-  <el-dialog
+  <!-- <el-dialog
     v-model="showOrdersDialog"
     title="我的订单"
     width="90%"
@@ -139,7 +139,7 @@
         @current-change="handleCurrentChange"
       />
     </div>
-  </el-dialog>
+  </el-dialog> -->
   </div>
 </template>
 

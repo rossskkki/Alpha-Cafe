@@ -29,6 +29,9 @@ public class OrdersSubmitDTO implements Serializable {
     //点单状态  1立即下单  0预约下单
     private Integer orderStatus;
 
+    //就餐方式 1堂食 2外带
+    private Integer diningMethod;
+
     //餐具数量
 //    private Integer tablewareNumber;
     //餐具数量状态  1按餐量提供  0选择具体数量

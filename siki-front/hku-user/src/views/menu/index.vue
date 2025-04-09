@@ -160,13 +160,7 @@
             <el-radio :label="2">外带</el-radio>
           </el-radio-group>
         </div>
-        
-        <!-- 桌号选择 (仅堂食时显示) -->
-        <div class="table-section" v-if="diningMethod === 1">
-          <div class="section-title">桌号</div>
-          <el-input-number v-model="tableNumber" :min="1" :max="50" size="large" />
-        </div>
-        
+      
         <!-- 订单商品 -->
         <div class="order-items">
           <div class="section-title">订单商品</div>
@@ -202,8 +196,7 @@
     <el-dialog v-model="pickupCodeDialogVisible" title="取餐码" width="80%" center>
       <div class="pickup-code-container">
         <div class="pickup-code">{{ pickupCode }}</div>
-        <p class="pickup-tip" v-if="diningMethod === 1">请记住您的取餐码，服务员将为您送餐到{{ tableNumber }}号桌</p>
-        <p class="pickup-tip" v-else>请凭此取餐码到取餐处取餐</p>
+        <p class="pickup-tip">请凭此取餐码到取餐处取餐</p>
       </div>
       <template #footer>
         <div class="dialog-footer">
@@ -215,6 +208,7 @@
 </template>
 
 <script setup lang="ts">
+import { format } from 'date-fns'
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -238,9 +232,6 @@ const checkoutDialogVisible = ref(false)
 
 // 就餐方式 1-堂食 2-外带
 const diningMethod = ref(1)
-
-// 桌号
-const tableNumber = ref(1)
 
 // 订单备注
 const orderRemark = ref('')
@@ -485,10 +476,11 @@ const generatePickupCode = () => {
 const handleSubmitOrder = async () => {
   try {
     const params = {
-      tableNumber: diningMethod.value === 1 ? tableNumber.value : null,
       payMethod: 1, // 1微信支付 2支付宝支付
       remark: orderRemark.value,
-      diningMethod: diningMethod.value // 1堂食 2外带
+      diningMethod: diningMethod.value, // 1堂食 2外带
+      amount: cartStore.cartTotal.value,
+      estimatedFinishedTime: format(new Date(Date.now() + 30 * 60 * 1000), "yyyy-MM-dd HH:mm:ss")// 预估完成时间
     }
     
     const res = await submitOrderAPI(params)
@@ -498,7 +490,7 @@ const handleSubmitOrder = async () => {
       cartStore.clearCart()
       
       // 显示取餐码
-      pickupCode.value = res.data.data
+      pickupCode.value = res.data.data.pickupCode
       pickupCodeDialogVisible.value = true
     }
   } catch (error) {

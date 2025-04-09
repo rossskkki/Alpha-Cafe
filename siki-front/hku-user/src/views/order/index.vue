@@ -8,8 +8,8 @@ import { ElMessage } from 'element-plus'
 const orderStatus = {
   1: '待付款',
   2: '待接单',
-  3: '待派送',
-  4: '派送中',
+  3: '待制作',
+  4: '制作中',
   5: '已完成',
   6: '已取消'
 }
@@ -22,6 +22,9 @@ const pageSize = ref(10)
 const total = ref(0)
 const loading = ref(false)
 
+// 最新订单标识
+const isLatestOrder = (index: number) => index === 0 && page.value === 1
+
 // 路由实例
 const router = useRouter()
 
@@ -33,8 +36,8 @@ const getOrderList = async () => {
       page: page.value,
       pageSize: pageSize.value
     })
-    orderList.value = res.data.records
-    total.value = res.data.total
+    orderList.value = res.data.data.records
+    total.value = res.data.data.total
   } catch (error) {
     ElMessage.error('获取订单列表失败')
     console.error(error)
@@ -83,7 +86,7 @@ onMounted(() => {
     </div>
     
     <el-card v-else v-loading="loading" class="order-list">
-      <div v-for="order in orderList" :key="order.id" class="order-item">
+      <div v-for="(order, index) in orderList" :key="order.id" class="order-item" :class="{ 'latest-order': isLatestOrder(index) }">
         <div class="order-header">
           <span class="order-number">订单号: {{ order.number }}</span>
           <span class="order-status" :class="`status-${order.status}`">{{ orderStatus[order.status] }}</span>
@@ -99,8 +102,10 @@ onMounted(() => {
           
           <div class="order-info">
             <p>下单时间: {{ formatDate(order.orderTime) }}</p>
-            <p>收货地址: {{ order.address }}</p>
-            <p>联系电话: {{ order.phone }}</p>
+            <div class="pickup-code-container" v-if="order.pickupCode">
+              <p class="pickup-code-label">取餐码:</p>
+              <div class="pickup-code">{{ order.pickupCode }}</div>
+            </div>
             <p class="order-amount">实付金额: <span>¥{{ order.amount }}</span></p>
           </div>
         </div>
@@ -126,6 +131,17 @@ onMounted(() => {
 </template>
 
 <style scoped>
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
 .order-container {
   padding: 20px;
 }
@@ -184,6 +200,22 @@ onMounted(() => {
   color: #409eff;
 }
 
+.latest-order .order-header {
+  border-bottom: 1px solid #e1f3d8;
+}
+
+.latest-order .pickup-code {
+  font-size: 24px;
+  background-color: #f56c6c;
+  animation: pulse 1.5s infinite;
+}
+
+.latest-order {
+  background-color: #f0f9eb;
+  border-left: 3px solid #67c23a;
+  padding-left: 12px;
+}
+
 .status-5 {
   color: #67c23a;
 }
@@ -222,8 +254,30 @@ onMounted(() => {
   margin: 5px 0;
 }
 
+.pickup-code-container {
+  display: flex;
+  align-items: center;
+  margin: 10px 0;
+}
+
+.pickup-code-label {
+  margin-right: 10px;
+  font-weight: bold;
+}
+
+.pickup-code {
+  background-color: #f56c6c;
+  color: white;
+  font-size: 20px;
+  font-weight: bold;
+  padding: 5px 15px;
+  border-radius: 4px;
+  letter-spacing: 2px;
+}
+
 .order-amount {
   font-weight: bold;
+  margin-top: 10px;
 }
 
 .order-amount span {

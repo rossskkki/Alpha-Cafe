@@ -27,6 +27,11 @@ const router = createRouter({
           name: 'cart',
           redirect: '/',
           meta: { requiresAuth: true }
+        },
+        {
+          path: 'order',
+          name: 'order',
+          component: () => import('./views/order/index.vue'),
         }
       ]
     },

@@ -26,16 +26,26 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
+import static com.siki.constant.RedisConstants.PICKUP_CODE_KEY;
 
 @Service
 public class OrderServiceImpl implements OrderService {
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     @Autowired
     private OrderMapper orderMapper;
@@ -72,6 +82,37 @@ public class OrderServiceImpl implements OrderService {
 
 
     /**
+     * 生成取餐码
+     * @return 3位数的取餐码
+     */
+    private String generatePickupCode() {
+        // 获取当前日期作为key的一部分
+        String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String key = PICKUP_CODE_KEY + today;
+
+        // 原子性递增并获取值
+        Long increment = redisTemplate.opsForValue().increment(key);
+
+        // 如果是第一次设置，添加过期时间（到第二天凌晨）
+        if (increment == 1) {
+            // 设置key在第二天凌晨过期
+            LocalDateTime tomorrow = LocalDate.now().plusDays(1).atStartOfDay();
+            long secondsUntilTomorrow = ChronoUnit.SECONDS.between(LocalDateTime.now(), tomorrow);
+            redisTemplate.expire(key, secondsUntilTomorrow, TimeUnit.SECONDS);
+        }
+
+        // 处理超过999的情况
+        if (increment > 999) {
+            // 重置为1
+            redisTemplate.opsForValue().set(key, "1");
+            increment = 1L;
+        }
+
+        // 格式化为3位数的字符串
+        return String.format("%03d", increment);
+    }
+
+    /**
      * 提交订单
      * @param ordersSubmitDTO
      * @return
@@ -88,12 +129,13 @@ public class OrderServiceImpl implements OrderService {
         //检查收货地址是否超出配送范围
 //        checkOutOfRange(addressBook.getProvinceName() + addressBook.getCityName() + addressBook.getDistrictName() + addressBook.getDetail());
 
+
         //查询购物车数据
         Long userId = BaseContext.getCurrentId();
         ShoppingCart shoppingCart = new ShoppingCart();
         shoppingCart.setUserId(userId);
         List<ShoppingCart> shoppingCartList = shoppingCartMapper.list(shoppingCart);
-        if (shoppingCartList == null || shoppingCartList.size() == 0) {
+        if (shoppingCartList == null || shoppingCartList.isEmpty()) {
             //抛出异常
             throw new AddressBookBusinessException(MessageConstant.SHOPPING_CART_IS_NULL);
         }
@@ -104,6 +146,8 @@ public class OrderServiceImpl implements OrderService {
         orders.setOrderTime(LocalDateTime.now());
         orders.setPayStatus(Orders.UN_PAID);
         orders.setStatus(Orders.PENDING_PAYMENT);
+        //取餐码
+        orders.setPickCode(generatePickupCode());
         orders.setNumber(String.valueOf(System.currentTimeMillis()));
         orders.setPhone(userMapper.getPhoneById(userId));
 //        orders.setConsignee(addressBook.getConsignee());
@@ -126,10 +170,10 @@ public class OrderServiceImpl implements OrderService {
         OrderSubmitVO orderSubmitVO = OrderSubmitVO.builder()
                 .id(orders.getId())
                 .orderTime(orders.getOrderTime())
+                .pickupCode(orders.getPickCode())
                 .orderNumber(orders.getNumber())
                 .orderAmount(orders.getAmount())
                 .build();
-
         return orderSubmitVO;
     }
 

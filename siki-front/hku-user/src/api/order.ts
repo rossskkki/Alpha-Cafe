@@ -20,7 +20,7 @@ export const submitOrderAPI = (params: any) => {
  */
 export const getOrderListAPI = (params: any) => {
   return request({
-    url: '/order/userPage',
+    url: '/order/historyOrders',
     method: 'get',
     params
   })
