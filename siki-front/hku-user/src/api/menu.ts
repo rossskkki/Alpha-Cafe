@@ -83,3 +83,12 @@ export const getSetmealDetailAPI = (id: number) => {
     method: 'get'
   })
 }
+  /**
+   * 获取店铺状态
+   */
+  export const getShopStatusAPI = () => {
+    return request({
+      url: '/shop/status',
+      method: 'get'
+    }) 
+  }

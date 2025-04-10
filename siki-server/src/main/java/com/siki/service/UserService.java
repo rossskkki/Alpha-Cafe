@@ -3,6 +3,7 @@ package com.siki.service;
 import javax.servlet.http.HttpSession;
 
 import com.siki.dto.UserLoginDTO;
+import com.siki.dto.UserUpdateInfoDTO;
 import com.siki.entity.User;
 import com.siki.result.Result;
 import com.siki.vo.UserLoginVO;
@@ -27,5 +28,5 @@ public interface UserService {
 
     User getById(Long userId);
 
-    void updateById(Long userId, String name);
+    void updateById(Long userId, UserUpdateInfoDTO info);
 }

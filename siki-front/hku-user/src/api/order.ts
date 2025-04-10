@@ -33,7 +33,7 @@ export const getOrderListAPI = (params: any) => {
  */
 export const getOrderDetailAPI = (id: string) => {
   return request({
-    url: `/order/userOrderDetail/${id}`,
+    url: `/order/orderDetail/${id}`,
     method: 'get'
   })
 }

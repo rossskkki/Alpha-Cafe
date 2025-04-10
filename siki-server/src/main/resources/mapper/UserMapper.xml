@@ -7,6 +7,17 @@
         insert into user (id, phone, password, nick_name, icon, create_time,update_time)
         values (#{id}, #{phone}, #{password}, #{nickName}, #{icon}, #{createTime}, #{updateTime})
     </insert>
+    <update id="updateUser">
+        update user
+        <set>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="password != null">password = #{password},</if>
+            <if test="nickName != null">nick_name = #{nickName},</if>
+            <if test="icon != null">icon = #{icon},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </set>
+        where id = #{id}
+    </update>
 
     <select id="countNewUserByMap" resultType="java.lang.Integer">
         select count(distinct id) from user

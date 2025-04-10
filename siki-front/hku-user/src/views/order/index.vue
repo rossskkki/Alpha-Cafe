@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getOrderListAPI } from '@/api/order'
 import { ElMessage } from 'element-plus'
@@ -71,15 +71,46 @@ const formatDate = (dateStr: string) => {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
 }
 
-// 组件挂载时获取订单列表
+// 响应式屏幕宽度
+const screenWidth = ref(window.innerWidth)
+
+// 监听窗口大小变化
+const handleResize = () => {
+  screenWidth.value = window.innerWidth
+}
+
+// 组件挂载时获取订单列表并添加窗口大小监听
 onMounted(() => {
   getOrderList()
+  window.addEventListener('resize', handleResize)
 })
+
+// 组件卸载时移除窗口大小监听
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
+})
+
+// 判断日期是否为当天
+const isToday = (dateStr: string) => {
+  if (!dateStr) return false
+  const orderDate = new Date(dateStr)
+  const today = new Date()
+  return orderDate.getFullYear() === today.getFullYear() &&
+         orderDate.getMonth() === today.getMonth() &&
+         orderDate.getDate() === today.getDate()
+}
+// 返回上一页
+const goBack = () => {
+  router.back()
+}
 </script>
 
 <template>
   <div class="order-container">
-    <h2 class="page-title">我的订单</h2>
+    <div class="page-header-container">
+      <el-button icon="ArrowLeft" size="big" @click="goBack" class="back-button"></el-button>
+      <h2 class="page-title">我的订单</h2>
+    </div>
     
     <div v-if="orderList.length === 0 && !loading" class="empty-order">
       <el-empty description="暂无订单数据" />
@@ -102,7 +133,7 @@ onMounted(() => {
           
           <div class="order-info">
             <p>下单时间: {{ formatDate(order.orderTime) }}</p>
-            <div class="pickup-code-container" v-if="order.pickupCode">
+            <div class="pickup-code-container" v-if="order.pickupCode && isToday(order.orderTime)">
               <p class="pickup-code-label">取餐码:</p>
               <div class="pickup-code">{{ order.pickupCode }}</div>
             </div>
@@ -120,8 +151,10 @@ onMounted(() => {
           v-model:current-page="page"
           v-model:page-size="pageSize"
           :page-sizes="[5, 10, 20, 50]"
-          layout="total, sizes, prev, pager, next, jumper"
+          :layout="screenWidth <= 768 ? 'prev, pager, next' : 'total, sizes, prev, pager, next, jumper'"
           :total="total"
+          :small="screenWidth <= 768"
+          :pager-count="screenWidth <= 768 ? 5 : 7"
           @size-change="handleSizeChange"
           @current-change="handleCurrentChange"
         />
@@ -146,8 +179,18 @@ onMounted(() => {
   padding: 20px;
 }
 
-.page-title {
+.page-header-container {
+  display: flex;
+  align-items: center;
   margin-bottom: 20px;
+}
+
+.back-button {
+  margin-right: 10px;
+}
+
+.page-title {
+  margin: 0;
   font-size: 24px;
   color: #333;
 }
@@ -294,5 +337,34 @@ onMounted(() => {
   margin-top: 20px;
   display: flex;
   justify-content: center;
+}
+
+/* 移动设备上的分页样式优化 */
+@media screen and (max-width: 768px) {
+  .pagination-container {
+    margin-top: 15px;
+  }
+  
+  /* 增大分页按钮的点击区域 */
+  :deep(.el-pagination .el-pager li) {
+    min-width: 32px;
+    height: 32px;
+    line-height: 32px;
+    margin: 0 3px;
+  }
+  
+  /* 增大前进后退按钮的点击区域 */
+  :deep(.el-pagination .btn-prev),
+  :deep(.el-pagination .btn-next) {
+    padding: 0 10px;
+    min-width: 32px;
+    height: 32px;
+  }
+  
+  /* 调整分页组件的整体间距 */
+  :deep(.el-pagination) {
+    padding: 10px 5px;
+    font-size: 14px;
+  }
 }
 </style>

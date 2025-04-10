@@ -1,5 +1,10 @@
 <template>
   <div class="app-container">
+    <!-- 固定标题栏 -->
+    <div class="header-title">
+      <h1>HKU Alpha Cafe</h1>
+    </div>
+    
     <!-- 内容区域 -->
     <div class="main-content">
       <router-view />
@@ -40,9 +45,31 @@ const route = useRoute()
   position: relative;
 }
 
+.header-title {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50px;
+  background-color: #409EFF;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+}
+
+.header-title h1 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: bold;
+}
+
 .main-content {
   flex: 1;
   overflow-y: auto;
+  padding-top: 50px;
   padding-bottom: 60px;
 }
 

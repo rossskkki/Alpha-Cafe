@@ -147,7 +147,7 @@ public class OrderServiceImpl implements OrderService {
         orders.setPayStatus(Orders.UN_PAID);
         orders.setStatus(Orders.PENDING_PAYMENT);
         //取餐码
-        orders.setPickCode(generatePickupCode());
+        orders.setPickupCode(generatePickupCode());
         orders.setNumber(String.valueOf(System.currentTimeMillis()));
         orders.setPhone(userMapper.getPhoneById(userId));
 //        orders.setConsignee(addressBook.getConsignee());
@@ -170,7 +170,7 @@ public class OrderServiceImpl implements OrderService {
         OrderSubmitVO orderSubmitVO = OrderSubmitVO.builder()
                 .id(orders.getId())
                 .orderTime(orders.getOrderTime())
-                .pickupCode(orders.getPickCode())
+                .pickupCode(orders.getPickupCode())
                 .orderNumber(orders.getNumber())
                 .orderAmount(orders.getAmount())
                 .build();

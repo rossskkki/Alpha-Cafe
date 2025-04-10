@@ -204,6 +204,22 @@
         </div>
       </template>
     </el-dialog>
+    
+    <!-- 店铺打烊弹窗 -->
+    <el-dialog
+      v-model="closedDialogVisible"
+      title="温馨提示"
+      width="80%"
+      center
+      :show-close="false"
+    >
+      <div class="closed-dialog-content">
+        <el-icon class="closed-icon" :size="50" color="#F56C6C"><WarningFilled /></el-icon>
+        <h3 class="closed-title">店铺已打烊</h3>
+        <p class="closed-message">很抱歉，店铺当前已打烊，暂不接受点餐</p>
+        <p class="closed-tip">请在营业时间内再次光临</p>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -212,11 +228,11 @@ import { format } from 'date-fns'
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getCategoryListAPI, getDishListAPI, getSetmealListAPI, getHotDishListAPI } from '@/api/menu'
+import { getCategoryListAPI, getDishListAPI, getSetmealListAPI, getHotDishListAPI, getShopStatusAPI} from '@/api/menu'
 import { addToCartAPI, getCartListAPI, clearCartAPI, deleteCartItemAPI, addCartItemAPI, subCartItemAPI} from '@/api/cart'
 import { submitOrderAPI } from '@/api/order'
 import { useCartStore } from '@/store/cart'
-import { Plus, Minus, ShoppingCart } from '@element-plus/icons-vue'
+import { Plus, Minus, ShoppingCart, WarningFilled } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const cartStore = useCartStore()
@@ -254,6 +270,11 @@ const hotDishList = ref<any[]>([])
 
 // 购物车详情显示控制
 const showCartDetail = ref(false)
+
+// 店铺状态 1-营业中 0-已打烊
+const shopStatus = ref(1)
+// 打烊弹窗
+const closedDialogVisible = ref(false)
 
 // 结算相关
 // const checkoutDialogVisible = ref(false)
@@ -343,6 +364,12 @@ const handleSearchClear = () => {
 
 // 处理菜品点击
 const handleDishClick = (dish: any) => {
+  // 判断店铺是否已打烊
+  if (shopStatus.value === 0) {
+    closedDialogVisible.value = true
+    return
+  }
+  
   router.push({
     path: `/dish/${dish.id}`,
     query: { categoryId: activeCategory.value,
@@ -353,6 +380,12 @@ const handleDishClick = (dish: any) => {
 
 //处理热点菜品点击
 const handleHotDishClick = (dish: any) => {
+  // 判断店铺是否已打烊
+  if (shopStatus.value === 0) {
+    closedDialogVisible.value = true
+    return
+  }
+  
   router.push({
     path: `/dish/${dish.id}`,
     query: {categoryId: activeCategory.value,
@@ -363,6 +396,12 @@ const handleHotDishClick = (dish: any) => {
 
 // 处理套餐点击
 const handleSetmealClick = (setmeal: any) => {
+  // 判断店铺是否已打烊
+  if (shopStatus.value === 0) {
+    closedDialogVisible.value = true
+    return
+  }
+  
   router.push({
     path: `/setmeal/${setmeal.id}`,
     query: { categoryId: activeCategory.value }
@@ -371,6 +410,12 @@ const handleSetmealClick = (setmeal: any) => {
 
 // 添加到购物车
 const addToCart = async (item: any, isSetmeal = false) => {
+  // 判断店铺是否已打烊
+  if (shopStatus.value === 0) {
+    closedDialogVisible.value = true
+    return
+  }
+  
   try {
     await addToCartAPI({
       dishId: isSetmeal ? null : item.id,
@@ -458,6 +503,13 @@ const handleClearCart = async () => {
 
 // 去结算
 const handleCheckout = () => {
+  // 判断店铺是否已打烊
+  if (shopStatus.value === 0) {
+    closedDialogVisible.value = true
+    showCartDrawer.value = false
+    return
+  }
+  
   // 打开结算弹窗
   checkoutDialogVisible.value = true
   // 关闭购物车抽屉
@@ -499,6 +551,23 @@ const handleSubmitOrder = async () => {
   }
 }
 
+
+// 获取店铺状态
+const getShopStatus = async () => {
+  try {
+    const res = await getShopStatusAPI()
+    shopStatus.value = res.data.data
+    
+    // 判断店铺状态，如果已打烊则显示弹窗
+    if (shopStatus.value === 0) {
+      closedDialogVisible.value = true
+    }
+  } catch (error) {
+    console.error('获取店铺状态失败', error)
+    ElMessage.error('获取店铺状态失败')
+  }
+}
+
 // 获取热点菜品列表
 const getHotDishList = async () => {
   try {
@@ -512,6 +581,10 @@ const getHotDishList = async () => {
 
 // 组件挂载时获取分类列表和购物车数据
 onMounted(() => {
+
+  // 获取店铺状态
+  getShopStatus() 
+
   // 获取热点菜品
   getHotDishList()
   
@@ -536,6 +609,36 @@ onMounted(() => {
 .menu-container {
   padding: 10px;
   padding-bottom: 70px;
+  
+  /* 店铺打烊弹窗样式 */
+  .closed-dialog-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 0;
+    
+    .closed-icon {
+      margin-bottom: 15px;
+    }
+    
+    .closed-title {
+      font-size: 20px;
+      font-weight: bold;
+      color: #F56C6C;
+      margin-bottom: 15px;
+    }
+    
+    .closed-message {
+      font-size: 16px;
+      color: #606266;
+      margin-bottom: 10px;
+    }
+    
+    .closed-tip {
+      font-size: 14px;
+      color: #909399;
+    }
+  }
   
   /* 购物车抽屉样式 */
   .cart-content {

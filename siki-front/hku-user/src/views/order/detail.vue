@@ -8,8 +8,8 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 const orderStatus = {
   1: '待付款',
   2: '待接单',
-  3: '待派送',
-  4: '派送中',
+  3: '待制作',
+  4: '制作中',
   5: '已完成',
   6: '已取消'
 }
@@ -27,7 +27,7 @@ const getOrderDetail = async () => {
   loading.value = true
   try {
     const res = await getOrderDetailAPI(orderId)
-    orderDetail.value = res.data
+    orderDetail.value = res.data.data
   } catch (error) {
     ElMessage.error('获取订单详情失败')
     console.error(error)
@@ -113,34 +113,10 @@ onMounted(() => {
           </div>
         </div>
         
-        <el-divider />
-        
-        <div class="delivery-info-section">
-          <h3>配送信息</h3>
-          <div class="info-item">
-            <span class="label">收货人：</span>
-            <span class="value">{{ orderDetail.consignee }}</span>
-          </div>
-          <div class="info-item">
-            <span class="label">联系电话：</span>
-            <span class="value">{{ orderDetail.phone }}</span>
-          </div>
-          <div class="info-item">
-            <span class="label">收货地址：</span>
-            <span class="value">{{ orderDetail.address }}</span>
-          </div>
-          <div class="info-item">
-            <span class="label">配送状态：</span>
-            <span class="value">{{ orderDetail.status >= 4 ? '配送中' : (orderDetail.status >= 3 ? '待配送' : '未配送') }}</span>
-          </div>
-        </div>
-        
-        <el-divider />
-        
         <div class="order-items-section">
           <h3>订单内容</h3>
           <div class="order-items-list">
-            <div v-for="(item, index) in orderDetail.orderDetails" :key="index" class="order-item">
+            <div v-for="(item, index) in orderDetail.orderDetailList" :key="index" class="order-item">
               <div class="item-info">
                 <div class="item-name">{{ item.name }}</div>
                 <div class="item-quantity">x{{ item.number }}</div>
@@ -153,10 +129,6 @@ onMounted(() => {
             <div class="summary-item">
               <span>商品金额：</span>
               <span>¥{{ orderDetail.amount }}</span>
-            </div>
-            <div class="summary-item">
-              <span>配送费：</span>
-              <span>¥0.00</span>
             </div>
             <div class="summary-item total">
               <span>实付金额：</span>

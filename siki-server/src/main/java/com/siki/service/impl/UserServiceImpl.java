@@ -5,8 +5,10 @@ import cn.hutool.core.bean.copier.CopyOptions;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.siki.constant.MessageConstant;
+import com.siki.context.BaseContext;
 import com.siki.dto.UserDTO;
 import com.siki.dto.UserLoginDTO;
+import com.siki.dto.UserUpdateInfoDTO;
 import com.siki.entity.User;
 import com.siki.exception.LoginFailedException;
 import com.siki.mapper.UserMapper;
@@ -169,12 +171,19 @@ public class UserServiceImpl implements com.siki.service.UserService {
         return user;
     }
 
+
     @Override
-    public void updateById(Long userId, String name) {
+    public void updateById(Long userId, UserUpdateInfoDTO info) {
+        User user = new User();
         //根据id查询用户
-        User user = userMapper.getUserById(userId);
-        //更新用户信息
-        user.setNickName(name);
+        user.setId(userId);
+        if (info.getPhone() == ""){
+            info.setPhone(null);
+        }
+        if (info.getNickName() == ""){
+            info.setNickName(null);
+        }
+        BeanUtils.copyProperties(info, user);
         user.setUpdateTime(LocalDateTime.now());
         userMapper.updateUser(user);
     }

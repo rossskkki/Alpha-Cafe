@@ -4,6 +4,7 @@ import com.siki.constant.JwtClaimsConstant;
 import com.siki.constant.MessageConstant;
 import com.siki.context.BaseContext;
 import com.siki.dto.UserLoginDTO;
+import com.siki.dto.UserUpdateInfoDTO;
 import com.siki.entity.User;
 import com.siki.properties.JwtProperties;
 import com.siki.result.Result;
@@ -99,14 +100,14 @@ public class UserController {
 
     /**
      * 修改用户信息
-     * @param name 用户信息
+     * @param info 用户信息
      * @return 无
      */
     @PutMapping("/update")
     @ApiOperation("修改用户信息")
-    public Result<String> update(@RequestParam String name){
+    public Result update(@RequestBody UserUpdateInfoDTO info){
         Long userId = BaseContext.getCurrentId();
-        userService.updateById(userId, name);
+        userService.updateById(userId, info);
         return Result.success();
     }
 

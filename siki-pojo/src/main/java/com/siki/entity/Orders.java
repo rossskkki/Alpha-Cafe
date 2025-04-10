@@ -118,7 +118,7 @@ public class Orders implements Serializable {
 //    private Integer tablewareStatus;
 
     //取餐码
-    private String pickCode;
+    private String pickupCode;
 
     //就餐方式 1堂食 2外带
     private Integer diningMethod;

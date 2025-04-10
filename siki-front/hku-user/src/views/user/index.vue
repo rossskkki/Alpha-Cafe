@@ -41,11 +41,11 @@
       :close-on-click-modal="false"
     >
       <el-form :model="editForm" :rules="rules" ref="formRef" label-width="80px">
-        <el-form-item label="姓名" prop="name">
-          <el-input v-model="editForm.name" placeholder="请输入姓名" />
+        <el-form-item label="昵称" prop="nickname">
+          <el-input v-model="editForm.nickName" placeholder="请输入新昵称" />
         </el-form-item>
         <el-form-item label="手机号" prop="phone">
-          <el-input v-model="editForm.phone" placeholder="请输入手机号" />
+          <el-input v-model="editForm.phone" placeholder="请输入需要更换的手机号" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -164,22 +164,13 @@ const page = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
 
-// 订单状态
-const orderStatus = {
-  1: '待付款',
-  2: '待接单',
-  3: '待派送',
-  4: '派送中',
-  5: '已完成',
-  6: '已取消'
-}
 
 // 表单相关
 const formRef = ref<FormInstance>()
 const showEditDialog = ref(false)
 const updating = ref(false)
 const editForm = reactive({
-  name: '',
+  nickName: '',
   phone: ''
 })
 
@@ -211,11 +202,11 @@ const handleAvatarChange = (file: any) => {
 // 表单验证规则
 const rules = {
   name: [
-    { required: true, message: '请输入姓名', trigger: 'blur' },
+    { message: '请输入昵称', trigger: 'blur' },
     { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
   ],
   phone: [
-    { required: true, message: '请输入手机号', trigger: 'blur' },
+    { message: '请输入需要更换的手机号', trigger: 'blur' },
     { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号码', trigger: 'blur' }
   ]
 }
@@ -224,8 +215,9 @@ const rules = {
 const getUserInfo = async () => {
   try {
     const res = await getUserInfoAPI()
-    userInfo.value = res.data
-    userStore.setUserInfo(res.data)
+    // userInfo.value = res.data.data
+    userStore.updateUserInfo(res.data.data)
+    localStorage.setItem('userInfo', JSON.stringify(userStore.getUserInfo()))
   } catch (error){
     console.error('获取用户信息失败', error)
   }
@@ -233,7 +225,7 @@ const getUserInfo = async () => {
 
 // 打开编辑对话框
 const openEditDialog = () => {
-  editForm.name = userInfo.value?.name || ''
+  editForm.nickName = userInfo.value?.nickName || ''
   editForm.phone = userInfo.value?.phone || ''
   showEditDialog.value = true
 }
@@ -250,7 +242,7 @@ const updateUserInfo = async () => {
         ElMessage.success('个人信息修改成功')
         
         showEditDialog.value = false
-     //    // getUserInfo() // 刷新用户信息
+        getUserInfo() // 刷新用户信息
       } catch (error) {
         ElMessage.error('修改个人信息失败')
         console.error(error)
@@ -277,6 +269,7 @@ const updateAvatar = async () => {
     // 调用API上传头像
     const res = await updateAvatarAPI(formData)
     userStore.updateIcon(res.data.data)
+    localStorage.setItem('userInfo', JSON.stringify(userStore.getUserInfo()))
     ElMessage.success('头像更新成功')
     showAvatarDialog.value = false
     // getUserInfo() // 刷新用户信息
