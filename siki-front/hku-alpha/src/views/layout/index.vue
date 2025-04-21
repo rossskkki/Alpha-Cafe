@@ -49,6 +49,11 @@ const menuList = [
     path: '/employee',
     icon: 'setting',
   },
+  {
+    title: '优惠券管理',
+    path: '/voucher',
+    icon: 'Ticket', // Assuming 'Ticket' is an available Element Plus icon
+  },
 ]
 
 const form = reactive({

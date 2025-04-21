@@ -60,6 +60,16 @@ const router = createRouter({
           component: () => import('./views/setmeal/add.vue')
         },
         {
+          path: 'voucher',
+          name: 'voucher',
+          component: () => import('./views/voucher/index.vue')
+        },
+        {
+          path: 'voucher/add',
+          name: 'voucher_add',
+          component: () => import('./views/voucher/add.vue')
+        },
+        {
           path: 'employee',
           name: 'employee',
           component: () => import('./views/employee/index.vue')
