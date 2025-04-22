@@ -232,10 +232,12 @@ import { getCategoryListAPI, getDishListAPI, getSetmealListAPI, getHotDishListAP
 import { addToCartAPI, getCartListAPI, clearCartAPI, deleteCartItemAPI, addCartItemAPI, subCartItemAPI} from '@/api/cart'
 import { submitOrderAPI } from '@/api/order'
 import { useCartStore } from '@/store/cart'
+import { useUserStore } from '@/store/user' // <-- Add this import
 import { Plus, Minus, ShoppingCart, WarningFilled } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const cartStore = useCartStore()
+const userStore = useUserStore() // <-- Add this line
 
 // 搜索关键词
 const searchKeyword = ref('')
@@ -532,6 +534,7 @@ const handleSubmitOrder = async () => {
       remark: orderRemark.value,
       diningMethod: diningMethod.value, // 1堂食 2外带
       amount: cartStore.cartTotal.value,
+      userName: userStore.userInfo?.nickName || '',
       estimatedFinishedTime: format(new Date(Date.now() + 30 * 60 * 1000), "yyyy-MM-dd HH:mm:ss")// 预估完成时间
     }
     

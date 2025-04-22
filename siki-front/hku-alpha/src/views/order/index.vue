@@ -55,8 +55,7 @@ const rejectReasonList = reactive([
 const cancelrReasonList = reactive([
   { value: 1, label: '订单量较多，暂时无法接单' },
   { value: 2, label: '菜品已销售完，暂时无法接单', },
-  { value: 3, label: '骑手不足无法配送', },
-  { value: 4, label: '客户电话取消', },
+  { value: 3, label: '客户电话取消', },
   { value: 0, label: '自定义原因', },
 ])
 // 订单所有状态列表
@@ -64,8 +63,8 @@ const orderList = reactive([
   { label: '全部订单', value: 0, },
   { label: '待付款', value: 1, },
   { label: '待接单', value: 2, },
-  { label: '待派送', value: 3, },
-  { label: '派送中', value: 4, },
+  { label: '待完成', value: 3, },
+  { label: '叫号中', value: 4, },
   { label: '已完成', value: 5, },
   { label: '已取消', value: 6, },
 ])
@@ -73,8 +72,8 @@ const orderList = reactive([
 const changedOrderList = reactive([
   { label: '全部订单', value: 0 },
   { label: '待接单', value: 2, num: orderStatics.value?.toBeConfirmed },
-  { label: '待派送', value: 3, num: orderStatics.value?.confirmed },
-  { label: '派送中', value: 4, num: orderStatics.value?.deliveryInProgress },
+  { label: '待完成', value: 3, num: orderStatics.value?.confirmed },
+  { label: '叫号中', value: 4, num: orderStatics.value?.deliveryInProgress },
   { label: '已完成', value: 5 },
   { label: '已取消', value: 6 },
 ])
@@ -351,11 +350,9 @@ onMounted(async () => {
             <span>{{ getOrderType(row) }}</span>
           </template>
         </el-table-column>
-        <el-table-column v-if="[0, 5, 6].includes(orderStatus)" key="consignee" prop="consignee" label="用户名"
+        <el-table-column v-if="[0, 5, 6].includes(orderStatus)" key="userName" prop="userName" label="用户名"
           show-overflow-tooltip />
         <el-table-column v-if="[0, 5, 6].includes(orderStatus)" key="phone" prop="phone" label="手机号" />
-        <el-table-column v-if="[0, 2, 3, 4, 5, 6].includes(orderStatus)" key="address" prop="address" label="地址"
-          :class-name="orderStatus === 6 ? 'address' : ''" />
         <el-table-column v-if="[0, 6].includes(orderStatus)" key="orderTime" prop="orderTime" label="下单时间"
           class-name="orderTime" min-width="110" />
         <el-table-column v-if="[6].includes(orderStatus)" key="cancelTime" prop="cancelTime" class-name="cancelTime"
@@ -455,7 +452,7 @@ onMounted(async () => {
             <div class="user-info-box">
               <div class="user-name">
                 <label>用户名：</label>
-                <span>{{ diaForm!.consignee }}</span>
+                <span>{{ diaForm!.userName }}</span>
               </div>
               <div class="user-phone">
                 <label>手机号：</label>
@@ -470,10 +467,6 @@ onMounted(async () => {
                   ? diaForm!.deliveryTime
                   : diaForm!.estimatedDeliveryTime
                   }}</span>
-              </div>
-              <div class="user-address">
-                <label>地址：</label>
-                <span>{{ diaForm!.address }}</span>
               </div>
             </div>
             <div class="user-remark" :class="{ orderCancel: dialogOrderStatus === 6 }">

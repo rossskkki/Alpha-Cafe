@@ -4,8 +4,8 @@
 <mapper namespace="com.siki.mapper.OrderMapper">
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        insert into orders (user_id, number, amount, pay_status, pay_method, order_time, status, phone, dining_method, pickup_code, estimated_finished_time, remark)
-        values (#{userId}, #{number}, #{amount}, #{payStatus}, #{payMethod}, #{orderTime}, #{status}, #{phone}, #{diningMethod}, #{pickupCode}, #{estimatedFinishedTime}, #{remark})
+        insert into orders (user_id, number, amount, pay_status, pay_method, order_time, status, phone, dining_method, pickup_code, estimated_finished_time, remark, user_name)
+        values (#{userId}, #{number}, #{amount}, #{payStatus}, #{payMethod}, #{orderTime}, #{status}, #{phone}, #{diningMethod}, #{pickupCode}, #{estimatedFinishedTime}, #{remark}, #{userName})
     </insert>
 
     <update id="update" parameterType="com.siki.entity.Orders">
