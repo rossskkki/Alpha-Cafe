@@ -1,6 +1,9 @@
 package com.siki.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
+
+import java.time.LocalDateTime;
 
 @Data
 public class VoucherAddDTO {
@@ -22,10 +25,12 @@ public class VoucherAddDTO {
     private Long payValue;
 
     //代金券开始时间
-    private Long beginTime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime beginTime;
 
     //代金券结束时间
-    private Long endTime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime endTime;
 
     //剩余库存
     private Integer stock;

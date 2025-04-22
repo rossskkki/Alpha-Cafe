@@ -1,11 +1,13 @@
 package com.siki.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -32,10 +34,12 @@ public class Voucher implements Serializable{
     private Long payValue;
 
     //代金券开始时间
-    private Long beginTime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime beginTime;
 
     //代金券结束时间
-    private Long endTime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime endTime;
 
     //剩余库存
     private Integer stock;
@@ -44,5 +48,8 @@ public class Voucher implements Serializable{
     private Integer status;
 
     //创建时间
-    private Long createTime;
+    private LocalDateTime createTime;
+
+    //更新时间
+    private LocalDateTime updateTime;
 }

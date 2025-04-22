@@ -4,6 +4,7 @@ import { addVoucherAPI, getVoucherByIdAPI } from '@/api/voucher'
 import type { VoucherAddDTO } from '@/api/voucher'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { format } from 'date-fns'; // 引入 date-fns 用于格式化
 
 // ------ 配置 ------
 const formLabelWidth = '100px' // 表单label宽度
@@ -13,15 +14,25 @@ const isEditMode = ref(false)
 const voucherId = ref<number | null>(null)
 
 // ------ 数据 ------
-const form = reactive<VoucherAddDTO & { id?: number }> ({
+// Helper function to format Date to LocalDateTime string
+const formatToLocalDateTimeString = (date: Date): string => {
+  // 使用 date-fns 格式化，确保兼容性
+  return format(date, "yyyy-MM-dd HH:mm:ss");
+}
+
+const initialBeginTime = new Date();
+const initialEndTime = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+const form = reactive<Omit<VoucherAddDTO, 'beginTime' | 'endTime'> & { id?: number, dateRange?: [Date, Date], beginTime: string, endTime: string }> ({
   title: '',
   subTitle: '',
   rules: '',
   actualValue: 0, // 存储分
   payValue: 0, // 存储分
-  beginTime: Date.now(), // 默认当前时间
-  endTime: Date.now() + 7 * 24 * 60 * 60 * 1000, // 默认7天后
+  beginTime: formatToLocalDateTimeString(initialBeginTime), // 格式化为字符串
+  endTime: formatToLocalDateTimeString(initialEndTime), // 格式化为字符串
   stock: 100,
+  dateRange: [initialBeginTime, initialEndTime], // 保持 Date 对象用于选择器
 })
 
 // 用于表单展示和输入的金额（元）
@@ -29,7 +40,7 @@ const displayActualValue = ref<number | null>(null)
 const displayPayValue = ref<number | null>(null)
 
 // 日期时间选择器的值
-const dateRange = ref<[Date, Date]>([new Date(form.beginTime), new Date(form.endTime)])
+// const dateRange = ref<[Date, Date]>([new Date(form.beginTime), new Date(form.endTime)]) // 删除这行
 
 // 表单验证规则
 const rules = {
@@ -67,11 +78,14 @@ const handlePayValueChange = (value: number | null) => {
 // 处理日期范围变化
 const handleDateRangeChange = (val: [Date, Date] | null) => {
   if (val) {
-    form.beginTime = val[0].getTime()
-    form.endTime = val[1].getTime()
+    form.beginTime = formatToLocalDateTimeString(val[0]) // 格式化为字符串
+    form.endTime = formatToLocalDateTimeString(val[1]) // 格式化为字符串
+    form.dateRange = val // 更新选择器的值
   } else {
-    form.beginTime = 0
-    form.endTime = 0
+    // 根据业务需求决定清空或设为默认值，这里暂时清空
+    form.beginTime = ''
+    form.endTime = ''
+    form.dateRange = undefined
   }
 }
 
@@ -86,15 +100,15 @@ const submitForm = async () => {
         return
       }
 
-      // 准备提交的数据
+      // 准备提交的数据，确保类型匹配 VoucherAddDTO (string for times)
       const submitData: VoucherAddDTO = {
         title: form.title,
         subTitle: form.subTitle,
         rules: form.rules,
         actualValue: form.actualValue,
         payValue: form.payValue,
-        beginTime: form.beginTime,
-        endTime: form.endTime,
+        beginTime: form.beginTime, // 已经是字符串
+        endTime: form.endTime,   // 已经是字符串
         stock: form.stock,
       }
 
@@ -131,6 +145,7 @@ const goBack = () => {
 //     isEditMode.value = true
 //     voucherId.value = Number(id)
 //     try {
+//       // 注意：getVoucherByIdAPI 返回的 Voucher 类型现在时间也是 string
 //       const { data: res } = await getVoucherByIdAPI(voucherId.value)
 //       if (res.code === 0) {
 //         const voucherData = res.data
@@ -140,6 +155,7 @@ const goBack = () => {
 //         form.rules = voucherData.rules
 //         form.actualValue = voucherData.actualValue
 //         form.payValue = voucherData.payValue
+//         // 直接使用后端返回的字符串时间
 //         form.beginTime = voucherData.beginTime
 //         form.endTime = voucherData.endTime
 //         form.stock = voucherData.stock
@@ -147,8 +163,16 @@ const goBack = () => {
 //         // 更新用于显示的元单位金额
 //         displayActualValue.value = convertFenToYuan(voucherData.actualValue)
 //         displayPayValue.value = convertFenToYuan(voucherData.payValue)
-//         // 更新日期范围选择器
-//         dateRange.value = [new Date(voucherData.beginTime), new Date(voucherData.endTime)]
+//         // 更新日期范围选择器 - 需要将字符串转回 Date 对象
+//         // 注意：这里假设后端返回的字符串是 'yyyy-MM-ddTHH:mm:ss' 格式
+//         // 如果格式不同，需要调整解析方式
+//         try {
+//           form.dateRange = [new Date(voucherData.beginTime), new Date(voucherData.endTime)]
+//         } catch (e) {
+//            console.error("Error parsing date strings for date picker:", e);
+//            // 可以设置一个默认值或留空
+//            form.dateRange = undefined;
+//         }
 
 //       } else {
 //         ElMessage.error(res.msg || '加载优惠券信息失败')
@@ -186,7 +210,7 @@ const goBack = () => {
       </el-form-item>
       <el-form-item label="有效期" prop="dateRange">
         <el-date-picker
-          v-model="dateRange"
+          v-model="form.dateRange"
           type="datetimerange"
           range-separator="至"
           start-placeholder="开始日期时间"

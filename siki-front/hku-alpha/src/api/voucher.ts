@@ -8,21 +8,21 @@ export interface VoucherAddDTO {
   rules?: string
   actualValue: number // 分
   payValue: number // 分
-  beginTime: number // 时间戳
-  endTime: number // 时间戳
+  beginTime: string // LocalDateTime 字符串
+  endTime: string // LocalDateTime 字符串
   stock: number
 }
 
 export interface Voucher extends VoucherAddDTO {
   id: number
   status: number // 1-上架 2-下架 3-过期
-  createTime: number // 时间戳
+  createTime: string // LocalDateTime 字符串
 }
 
 // 新增代金券
 export const addVoucherAPI = (data: VoucherAddDTO) => {
   return request({
-    url: '/admin/voucher',
+    url: '/voucher',
     method: 'post',
     data
   })
@@ -31,7 +31,7 @@ export const addVoucherAPI = (data: VoucherAddDTO) => {
 // 分页查询代金券
 export const getVoucherPageListAPI = (params: PageQuery) => {
   return request<PageResult<Voucher>>({
-    url: '/admin/voucher/page',
+    url: '/voucher/page',
     method: 'get',
     params
   })
@@ -40,7 +40,7 @@ export const getVoucherPageListAPI = (params: PageQuery) => {
 // 根据ID查询代金券 (如果需要编辑功能)
 export const getVoucherByIdAPI = (id: number) => {
   return request<Voucher>({
-    url: `/admin/voucher/${id}`,
+    url: `/voucher/${id}`,
     method: 'get'
   })
 }
@@ -48,7 +48,7 @@ export const getVoucherByIdAPI = (id: number) => {
 // 更新代金券状态 (上架/下架)
 export const updateVoucherStatusAPI = (id: number, status: number) => {
   return request({
-    url: `/admin/voucher/status/${id}/${status}`,
+    url: `/voucher/status/${id}/${status}`,
     method: 'put'
   })
 }

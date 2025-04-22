@@ -4,6 +4,7 @@ import { getVoucherPageListAPI, updateVoucherStatusAPI } from '@/api/voucher'
 import type { Voucher } from '@/api/voucher' // 引入定义好的Voucher接口
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
+import { parseISO, format } from 'date-fns'; // 引入 date-fns 用于解析和格式化
 
 // ------ 数据 ------
 
@@ -105,7 +106,18 @@ const formatAmount = (amountInFen: number): string => {
 // 格式化时间戳
 const formatTimestamp = (timestamp: number): string => {
   if (!timestamp) return 'N/A'
-  return new Date(timestamp).toLocaleString()
+  return new Date(timestamp).toLocaleString()}
+const formatLocalDateTimeString = (dateTimeString: string): string => {
+  if (!dateTimeString) return 'N/A';
+  try {
+    // 解析 ISO 格式的字符串 (假设后端返回的是类似 '2023-10-27T10:30:00' 的格式)
+    const date = parseISO(dateTimeString);
+    // 格式化为本地可读的日期时间格式
+    return format(date, 'yyyy-MM-dd HH:mm:ss');
+  } catch (error) {
+    console.error('Error formatting date time string:', dateTimeString, error);
+    return '无效日期'; // 或者返回原始字符串或其他提示
+  }
 }
 
 </script>
@@ -136,7 +148,7 @@ const formatTimestamp = (timestamp: number): string => {
        <el-table-column prop="stock" label="库存" align="center" />
       <el-table-column label="有效期" align="center" width="320px">
         <template #default="scope">
-          {{ formatTimestamp(scope.row.beginTime) }} - {{ formatTimestamp(scope.row.endTime) }}
+          {{ formatLocalDateTimeString(scope.row.beginTime) }} - {{ formatLocalDateTimeString(scope.row.endTime) }}
         </template>
       </el-table-column>
       <el-table-column prop="status" label="状态" align="center">
