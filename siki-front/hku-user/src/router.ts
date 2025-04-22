@@ -32,6 +32,11 @@ const router = createRouter({
           path: 'order',
           name: 'order',
           component: () => import('./views/order/index.vue'),
+        },
+        {
+          path: 'seckill',
+          name: 'seckill',
+          component: () => import('./views/voucher/seckill.vue')
         }
       ]
     },

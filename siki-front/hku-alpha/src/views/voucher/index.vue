@@ -5,6 +5,8 @@ import type { Voucher } from '@/api/voucher' // 引入定义好的Voucher接口
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { parseISO, format } from 'date-fns'; // 引入 date-fns 用于解析和格式化
+import { deleteVoucherAPI } from '@/api/voucher' // 引入 deleteVoucherAPI
+import { Plus, Delete } from '@element-plus/icons-vue' // 导入 Delete 图标
 
 // ------ 数据 ------
 
@@ -120,6 +122,39 @@ const formatLocalDateTimeString = (dateTimeString: string): string => {
   }
 }
 
+// 添加 deleteVoucher 方法 (如果尚未定义)
+const deleteVoucher = (id: number) => {
+  // 在这里实现删除逻辑，例如弹出确认框并调用API
+  console.log('Attempting to delete voucher with ID:', id);
+  ElMessageBox.confirm(
+    '确定要删除该优惠券吗？此操作不可撤销。',
+    '警告',
+    {
+      confirmButtonText: '确定删除',
+      cancelButtonText: '取消',
+      type: 'warning',
+    }
+  )
+    .then(async () => {
+      // 在这里调用删除API
+      try {
+        const { data: res } = await deleteVoucherAPI(id); // 假设有 deleteVoucherAPI
+        if (res.code === 0) {
+          ElMessage.success('删除成功');
+          loadVoucherList(); // 刷新列表
+        } else {
+          ElMessage.error(res.msg || '删除失败');
+        }
+      } catch (error) {
+        ElMessage.error('操作失败，请检查网络');
+        console.error('Failed to delete voucher:', error);
+      }
+    })
+    .catch(() => {
+      ElMessage.info('已取消删除');
+    });
+}
+
 </script>
 
 <template>
@@ -163,8 +198,10 @@ const formatLocalDateTimeString = (dateTimeString: string): string => {
           <el-button @click="changeStatus(scope.row)" plain :type="scope.row.status === 1 ? 'danger' : 'success'" :disabled="scope.row.status === 3">
             {{ scope.row.status === 1 ? '下架' : '上架' }}
           </el-button>
-          <!-- 可选：添加编辑按钮 -->
-          <!-- <el-button @click="goToEditVoucher(scope.row.id)" type="primary" size="small">编辑</el-button> -->
+          <!-- 使用 Element Plus 图标组件 -->
+          <el-button @click="deleteVoucher(scope.row.id)" type="danger" circle>
+             <el-icon><Delete /></el-icon>
+          </el-button>
         </template>
       </el-table-column>
       <template #empty>

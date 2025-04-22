@@ -7,4 +7,13 @@
         insert into voucher (title, sub_title, rules, stock, pay_value, actual_value, begin_time, end_time)
         values (#{title}, #{subTitle}, #{rules}, #{stock}, #{payValue}, #{actualValue}, #{beginTime}, #{endTime})
     </insert>
+    <select id="selectPage" resultType="com.siki.entity.Voucher">
+        select * from voucher
+        <where>
+            <if test="title != null">
+                and title like concat('%', #{title}, '%')
+            </if>
+        </where>
+        order by create_time desc
+    </select>
 </mapper>

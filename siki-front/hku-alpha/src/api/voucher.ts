@@ -61,3 +61,10 @@ export const updateVoucherStatusAPI = (id: number, status: number) => {
 //     data
 //   })
 // }
+
+export const deleteVoucherAPI = (id: number) => {
+  return request({
+    url: `/voucher/${id}`,
+    method: 'delete'
+  })
+}

@@ -17,74 +17,34 @@
         </el-carousel-item>
       </el-carousel>
     </div>
-    
-    <!-- 快捷点单按钮 -->
-    <div class="quick-order">
+
+      <!-- 快捷点单按钮 -->
+      <div class="quick-order">
       <el-button type="primary" size="large" @click="router.push('/menu')">
         <el-icon><Menu /></el-icon>
         <span>立即点单</span>
       </el-button>
     </div>
     
-    <!-- 团购套餐 -->
-    <div class="group-buy-section">
-      <div class="section-header">
-        <h2>团购套餐</h2>
-        <span class="view-more" @click="router.push('/menu')">查看更多</span>
+    <!-- 秒杀代金券区域 -->
+    <div class="seckill-section">
+      <div class="section-header-seckill">
+        <h3 class="section-title">限时秒杀</h3>
+        <el-button type="text" class="view-more-btn" @click="router.push('/seckill')">查看更多 ></el-button>
       </div>
-      
-      <div class="setmeal-list">
-        <div v-for="setmeal in groupBuySetmeals" :key="setmeal.id" class="setmeal-card" @click="handleSetmealClick(setmeal)">
-          <div class="setmeal-image">
-            <img :src="setmeal.image" :alt="setmeal.name" />
-            <div class="setmeal-tag">团购</div>
+      <div class="voucher-list">
+        <div v-for="voucher in seckillVouchers" :key="voucher.id" class="voucher-item">
+          <img src="E:\work\Java project\HKU-Alpha-Cafe\siki-front\hku-user\src\utils\pics\OIP-C.jpg" alt="代金券" class="voucher-image" />
+          <div class="voucher-info">
+            <div class="voucher-title">{{ voucher.title }}</div>
+            <div class="voucher-value">¥{{ formatAmount(voucher.actualValue) }}</div>
           </div>
-          <div class="setmeal-info">
-            <h3 class="setmeal-name">{{ setmeal.name }}</h3>
-            <p class="setmeal-desc">{{ setmeal.description }}</p>
-            <div class="setmeal-price-row">
-              <span class="setmeal-price">¥{{ setmeal.price }}</span>
-              <el-button type="primary" size="small" class="cart-btn" @click.stop="addToCart(setmeal, true)">
-                <el-icon><Plus /></el-icon> 加入购物车
-              </el-button>
-            </div>
-          </div>
+          <el-button type="danger" size="small" class="grab-btn">立即抢</el-button>
+        </div>
+        <div v-if="!seckillVouchers.length" class="no-vouchers">
+          暂无秒杀活动
         </div>
       </div>
-    </div>
-    
-    <!-- 热销菜品 -->
-    <div class="hot-dish-section">
-      <div class="section-header">
-        <h2>热销菜品</h2>
-        <span class="view-more" @click="router.push('/menu')">查看更多</span>
-      </div>
-      
-      <div class="dish-grid">
-        <div v-for="dish in popularDishes" :key="dish.id" class="dish-card" @click="handleDishClick(dish)">
-          <div class="dish-image">
-            <img :src="dish.image" :alt="dish.name" />
-            <div class="dish-tag">热销</div>
-          </div>
-          <div class="dish-info">
-            <h3 class="dish-name">{{ dish.name }}</h3>
-            <div class="dish-price-row">
-              <span class="dish-price">¥{{ dish.price }}</span>
-              <el-button type="primary" size="small" class="cart-btn" @click.stop="addToCart(dish)">
-                <el-icon><Plus /></el-icon> 加入购物车
-              </el-button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- 购物车悬浮按钮 -->
-    <div class="floating-cart" v-if="cartCount > 0" @click="router.push('/menu')">
-      <el-badge :value="cartCount" :max="99">
-        <el-icon class="cart-icon"><ShoppingCart /></el-icon>
-      </el-badge>
-      <span class="cart-total">¥{{ cartTotal }}</span>
     </div>
     
     <!-- 店铺信息 -->
@@ -105,6 +65,8 @@ import { Shop, Clock, Location, Phone, Plus, Menu, ShoppingCart } from '@element
 import { getDishListAPI, getSetmealListAPI, getCategoryListAPI } from '@/api/menu'
 import { addToCartAPI } from '@/api/cart'
 import { useCartStore } from '@/store/cart'
+import { getSeckillVouchersAPI } from '@/api/voucher' // 引入获取秒杀券的 API
+import type { UserVoucher } from '@/api/voucher' // 引入代金券类型
 
 const router = useRouter()
 const cartStore = useCartStore()
@@ -115,6 +77,8 @@ const hotDishes = ref<any[]>([])
 const groupBuySetmeals = ref<any[]>([])
 // 热销菜品数据（用于网格展示）
 const popularDishes = ref<any[]>([])
+// 秒杀代金券数据
+const seckillVouchers = ref<UserVoucher[]>([])
 
 // 购物车数量
 const cartCount = computed(() => cartStore.cartCount)
@@ -189,9 +153,31 @@ const addToCart = async (item: any, isSetmeal = false) => {
   }
 }
 
+// 格式化金额（分到元） - 如果已存在则无需重复添加
+const formatAmount = (amountInFen: number): string => {
+  if (amountInFen === null || amountInFen === undefined) return 'N/A'
+  return (amountInFen / 100).toFixed(2)
+}
+
+// 获取秒杀代金券
+const loadSeckillVouchers = async () => {
+  try {
+    // const res = await getSeckillVouchersAPI()
+    // 假设后端直接返回数组，且 code 在 request 拦截器中处理了
+    // 如果后端返回结构是 { code: 0, data: [], msg: '' }
+    const { data: res } = await getSeckillVouchersAPI()
+    if (res.code === 0) { seckillVouchers.value = res.data }
+    // seckillVouchers.value = res.data // 直接赋值，假设请求成功且数据在 data 中
+  } catch (error) {
+    console.error('获取秒杀代金券失败', error)
+    // ElMessage.error('获取秒杀活动失败') // 可选：给用户提示
+  }
+}
+
 onMounted(() => {
   getHotDishes()
   getGroupBuySetmeals()
+  loadSeckillVouchers() // 获取秒杀代金券
   cartStore.getCartList() // 获取购物车数据
 })
 </script>
@@ -586,6 +572,111 @@ onMounted(() => {
   .floating-cart {
     right: 15px;
     bottom: 70px;
+  }
+}
+.seckill-section {
+  margin: 20px 15px; // 上下外边距，左右外边距
+  padding: 15px; // 内边距
+  background-color: #f9f9f9; // 浅灰色背景
+  border-radius: 12px; // 圆角
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); // 轻微阴影
+
+  .section-header-seckill {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+
+  .section-title {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #e6a23c; // 标题颜色调整为与秒杀主题相关
+    padding-left: 10px;
+    border-left: 4px solid #e6a23c;
+    margin-bottom: 0; // 移除标题的下边距，因为容器有了
+  }
+
+  .view-more-btn {
+    font-size: 14px;
+    color: #909399;
+    padding: 0; // 移除按钮的默认内边距
+    &:hover {
+      color: #409eff;
+    }
+  }
+
+  .voucher-list {
+    display: flex;
+    overflow-x: auto; // 如果券多，允许横向滚动
+    gap: 15px; // 券之间的间距
+    padding-bottom: 10px; // 底部留出一点空间
+
+    // 隐藏滚动条（可选，根据需要）
+    &::-webkit-scrollbar {
+      display: none;
+    }
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+
+    .voucher-item {
+      flex: 0 0 auto; // 不伸缩，不压缩，基于内容宽度
+      width: 220px; // 固定宽度
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      transition: transform 0.2s ease;
+
+      &:hover {
+        transform: translateY(-2px);
+      }
+
+      .voucher-image {
+        width: 50px;
+        height: 50px;
+        object-fit: cover;
+        border-radius: 4px;
+        margin-right: 10px;
+      }
+
+      .voucher-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+
+        .voucher-title {
+          font-size: 14px;
+          font-weight: bold;
+          color: #303133;
+          margin-bottom: 4px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .voucher-value {
+          font-size: 16px;
+          font-weight: bold;
+          color: #f56c6c;
+        }
+      }
+
+      .grab-btn {
+        margin-left: 10px;
+      }
+    }
+
+    .no-vouchers {
+      width: 100%;
+      text-align: center;
+      color: #909399;
+      padding: 20px 0;
+    }
   }
 }
 </style>
