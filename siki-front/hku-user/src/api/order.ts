@@ -61,10 +61,3 @@ export const repeatOrderAPI = (id: string) => {
     method: 'post'
   })
 }
-
-export const seckillOrderAPI = (id: string) => {
-  return request({
-    url: `/order/seckill/${id}`,
-    method: 'post'
-  })
-}

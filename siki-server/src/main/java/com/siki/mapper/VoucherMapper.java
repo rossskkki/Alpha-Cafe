@@ -1,10 +1,8 @@
 package com.siki.mapper;
 
 import com.github.pagehelper.Page;
-import com.siki.annotation.AutoFill;
 import com.siki.dto.VoucherPageQueryDTO;
 import com.siki.entity.Voucher;
-import com.siki.enumeration.OperationType;
 import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
@@ -27,4 +25,10 @@ public interface VoucherMapper {
 
     @Select("select * from voucher")
     List<Voucher> selectList();
+
+    @Select("select * from voucher where id = #{id}")
+    Voucher selectById(Long id);
+
+    @Update("update voucher set stock = stock - 1 where id = #{id} and stock > 0")
+    boolean reduceStock(Long id);
 }

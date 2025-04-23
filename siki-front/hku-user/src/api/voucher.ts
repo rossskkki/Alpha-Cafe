@@ -38,3 +38,10 @@ export const getVoucherDetailByIdAPI = (id: number) => {
     method: 'get'
   })
 }
+export const seckillOrderAPI = (id: number) =>{
+  return request({
+    url: `/voucher/order/${id}`,
+    method: 'post'
+  })
+}
+

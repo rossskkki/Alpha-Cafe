@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.siki.mapper.VoucherOrderMapper">
+    <insert id="addOrder">
+        INSERT INTO voucher_order (user_id, voucher_id, id)
+        VALUES (#{userId}, #{voucherId}, #{id})
+    </insert>
+</mapper>

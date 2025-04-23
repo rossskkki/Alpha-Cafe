@@ -16,7 +16,7 @@
               {{ calculateDiscount(voucher.payValue, voucher.actualValue) }}
             </span>
           </div>
-          <div class="voucher-stock">库存: {{ voucher.stock }}</div>
+          <div class="voucher-stock">剩余 {{ voucher.stock }}</div>
           <div class="voucher-time">
             <div>开始时间: {{ formatDateTime(voucher.beginTime) }}</div>
             <div>结束时间: {{ formatDateTime(voucher.endTime) }}</div>
@@ -42,7 +42,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getSeckillVouchersAPI } from '@/api/voucher'
 import type { UserVoucher } from '@/api/voucher'
-import { seckillOrderAPI } from '@/api/order' // 引入秒杀下单 API
+import { seckillOrderAPI } from '@/api/voucher' // 引入秒杀下单 API
 import { computed } from 'vue' // 引入 computed
 
 const router = useRouter()
@@ -126,6 +126,7 @@ const handleGrab = async (voucher: UserVoucher) => {
     const { data: res } = await seckillOrderAPI(voucher.id)
     if (res.code === 0) {
       ElMessage.success('抢购成功！订单已生成')
+      ElMessage.info('订单号：' + res.data)
       // 可以在这里跳转到订单详情页或刷新当前页数据
       // router.push(`/order/${res.data.orderId}`)
       loadSeckillVouchers() // 刷新列表，更新库存等状态
