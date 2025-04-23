@@ -51,7 +51,7 @@ const route = useRoute()
   left: 0;
   right: 0;
   height: 50px;
-  background-color: #409EFF;
+  background-color: #e65c00;
   color: white;
   display: flex;
   justify-content: center;
@@ -106,7 +106,7 @@ const route = useRoute()
   }
   
   &.active {
-    color: #409EFF;
+    color: #ff9966;
   }
 }
 

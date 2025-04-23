@@ -414,7 +414,7 @@ onMounted(() => {
 .menu-item .el-icon {
   font-size: 20px;
   margin-right: 10px;
-  color: #409EFF;
+  color: #ff9966;
 }
 
 .menu-item span {
@@ -511,7 +511,7 @@ onMounted(() => {
 }
 
 .status-2, .status-3, .status-4 {
-  color: #409EFF;
+  color: #ff9966;
 }
 
 .status-5 {

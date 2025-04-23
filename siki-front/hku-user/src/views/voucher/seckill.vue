@@ -6,7 +6,7 @@
     <div v-else-if="seckillVouchers.length === 0" class="empty-state">暂无秒杀活动，敬请期待！</div>
     <div v-else class="voucher-grid">
       <div v-for="voucher in seckillVouchers" :key="voucher.id" class="voucher-card">
-        <img src="E:\work\Java project\HKU-Alpha-Cafe\siki-front\hku-user\src\utils\pics\OIP-C.jpg" alt="代金券" class="voucher-image-full" />
+        <img :src="loginBgImage" alt="代金券" class="voucher-image-full" />
         <div class="voucher-details">
           <div class="voucher-title-full">{{ voucher.title }}</div>
           <div class="voucher-value-container">
@@ -37,6 +37,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { ArrowLeft } from '@element-plus/icons-vue' // 引入返回图标
+import loginBgImage from '@/assets/pics/OIP-C.jpg'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getSeckillVouchersAPI } from '@/api/voucher'
@@ -194,7 +195,7 @@ onMounted(() => {
 
 .voucher-image-full {
   width: 100%;
-  height: 150px; // 图片高度
+  height: 200px; // 图片高度
   object-fit: cover;
 }
 

@@ -1,5 +1,7 @@
 <template>
   <div class="login-container">
+    <!-- 将 :src 绑定到导入的变量 loginBgImage -->
+    <el-image :src="loginBgImage" class="login-logo"></el-image>
     <el-card class="login-card">
       <div class="login-header">
         <h2>用户登录</h2>
@@ -50,6 +52,8 @@
 
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
+// 使用 import 导入图片资源
+import loginBgImage from '@/assets/pics/regback.jpg'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/store/user'
@@ -171,15 +175,19 @@ const handleLogin = async () => {
 <style scoped>
 .login-container {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
   height: 100vh;
-  background-color: #f5f5f5;
+  background-color: #ca9f74;
 }
 
 .login-card {
   width: 100%;
   max-width: 400px;
+  background-image: url('@/assets/pics/regback.jpg');
+  border-radius: 8px;
+  /* box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); */
+  padding: 30px;
 }
 
 .login-header {
@@ -225,5 +233,11 @@ const handleLogin = async () => {
   margin-left: 10px;
   width: 120px;
   white-space: nowrap;
+}
+
+.login-logo {
+  /* 确保图片有尺寸，否则可能不可见 */
+  width: 100%; /* 或您需要的大小 */
+  height: auto;
 }
 </style>

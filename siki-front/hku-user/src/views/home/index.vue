@@ -34,7 +34,7 @@
       </div>
       <div class="voucher-list">
         <div v-for="voucher in seckillVouchers" :key="voucher.id" class="voucher-item">
-          <img src="E:\work\Java project\HKU-Alpha-Cafe\siki-front\hku-user\src\utils\pics\OIP-C.jpg" alt="代金券" class="voucher-image" />
+          <el-image :src="loginBgImage" alt="代金券" class="voucher-image" ></el-image>
           <div class="voucher-info">
             <div class="voucher-title">{{ voucher.title }}</div>
             <div class="voucher-value">¥{{ formatAmount(voucher.actualValue) }}</div>
@@ -59,6 +59,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
+import loginBgImage from '@/assets/pics/OIP-C.jpg'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Shop, Clock, Location, Phone, Plus, Menu, ShoppingCart } from '@element-plus/icons-vue'
@@ -299,7 +300,7 @@ onMounted(() => {
       transform: translateY(-50%);
       width: 4px;
       height: 18px;
-      background-color: #409EFF;
+      background-color: #ff9966;
       border-radius: 2px;
     }
   }
@@ -340,8 +341,8 @@ onMounted(() => {
           width: 100%;
           height: 100%;
           object-fit: cover;
-        }
-        
+        }    
+
         .setmeal-tag {
           position: absolute;
           top: 8px;
@@ -472,45 +473,13 @@ onMounted(() => {
   }
 }
 
-// 悬浮购物车按钮
-.floating-cart {
-  position: fixed;
-  right: 20px;
-  bottom: 80px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background-color: #409EFF;
-  color: white;
-  padding: 10px;
-  border-radius: 50%;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  z-index: 10;
-  cursor: pointer;
-  transition: transform 0.3s ease;
-  
-  &:hover {
-    transform: scale(1.1);
-  }
-  
-  .cart-icon {
-    font-size: 24px;
-    margin-bottom: 5px;
-  }
-  
-  .cart-total {
-    font-size: 12px;
-    font-weight: bold;
-  }
-}
-
 .shop-info {
   background-color: #f5f7fa;
   padding: 20px;
   border-radius: 12px;
   margin: 0 15px 20px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  border-left: 4px solid #409EFF;
+  border-left: 4px solid #ff9966;
   
   h3 {
     font-size: 18px;
@@ -521,7 +490,7 @@ onMounted(() => {
     
     .el-icon {
       margin-right: 8px;
-      color: #409EFF;
+      color: #ff9966;
       font-size: 20px;
     }
   }

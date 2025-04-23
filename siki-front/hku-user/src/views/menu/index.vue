@@ -746,7 +746,7 @@ onMounted(() => {
       
       .cart-icon {
         font-size: 24px;
-        color: #409EFF;
+        color: #ff9966;
         margin-right: 10px;
       }
       
@@ -799,7 +799,7 @@ onMounted(() => {
     font-size: 14px;
     
     &.active {
-      background-color: #409EFF;
+      background-color: #ff9966;
       color: white;
     }
   }
@@ -811,7 +811,7 @@ onMounted(() => {
     font-weight: bold;
     margin-bottom: 15px;
     padding-left: 5px;
-    border-left: 3px solid #409EFF;
+    border-left: 3px solid #ff9966;
   }
 }
 
@@ -1133,7 +1133,7 @@ onMounted(() => {
   bottom: 80px;
   width: 60px;
   height: 60px;
-  background-color: #409EFF;
+  background-color: #ff9966;
   color: white;
   border-radius: 50%;
   display: flex;
@@ -1215,7 +1215,7 @@ onMounted(() => {
   .pickup-code {
     font-size: 36px;
     font-weight: bold;
-    color: #409EFF;
+    color: #ff9966;
     margin-bottom: 15px;
     letter-spacing: 5px;
   }

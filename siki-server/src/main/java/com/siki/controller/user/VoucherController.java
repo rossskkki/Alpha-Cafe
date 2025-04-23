@@ -27,15 +27,4 @@ public class VoucherController {
         List<Voucher> list = voucherService.listVoucher();
         return Result.success(list);
     }
-
-    @GetMapping("/detail/{id}")
-    public Result<Voucher> voucherDetail(@PathVariable Long id) {
-        log.info("开始查询优惠券id为{}的优惠券", id);
-        // 业务逻辑
-        Voucher voucher = voucherService.getById(id);
-        if (voucher == null) {
-            return Result.error("优惠券不存在");
-        }
-        return Result.success(voucher);
-    }
 }

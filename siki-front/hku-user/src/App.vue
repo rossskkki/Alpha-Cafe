@@ -26,6 +26,17 @@ a {
 ul, li {
   list-style: none;
 }
+
+/* 全局覆盖ElementUI的CSS变量 */
+:root {
+  --el-color-primary: #ff6600 !important; /* 修改主色为橙色 */
+  --el-color-primary-light-3: #ff9966 !important; /* 修改主色的淡3级颜色 */
+  --el-color-primary-light-5: #ffb380 !important; /* 修改主色的淡5级颜色 */
+  --el-color-primary-light-7: #ffcc99 !important; /* 修改主色的淡7级颜色 */
+  --el-color-primary-light-8: #ffe0b3 !important; /* 修改主色的淡8级颜色 */
+  --el-color-primary-light-9: #fff0cc !important; /* 修改主色的淡9级颜色 */
+  --el-color-primary-dark-2: #e65c00 !important; /* 修改主色的深2级颜色 */
+}
 </style>
 
 <script setup>
