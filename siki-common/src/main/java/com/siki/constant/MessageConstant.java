@@ -28,4 +28,9 @@ public class MessageConstant {
     public static final String PASSWORD_SAME = "新密码与旧密码相同";
     public static final String PHONE_FORMAT_ERROR = "手机号格式错误";
     public static final String CODE_ERROR = "验证码错误";
+
+    public static final String NO_STOCK = "库存不足";
+    public static final String HAVENT_START = "秒杀未开始";
+    public static final String ALREADY_END = "秒杀已结束";
+    public static final String ALREADY_ORDER = "您已经购买过了";
 }

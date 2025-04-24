@@ -19,12 +19,21 @@ public class VoucherController {
     @Autowired
     private VoucherService voucherService;
 
+    /**
+     * 查询代金券列表
+     * @return
+     */
     @GetMapping("/seckill/list")
     public Result<List<Voucher>> listVoucher(){
         List<Voucher> list = voucherService.listVoucher();
         return Result.success(list);
     }
 
+    /**
+     * 购买代金券
+     * @param voucherId
+     * @return
+     */
     @PostMapping("/order/{id}")
     public Result<Long> addVoucherOrder(@PathVariable("id") Long voucherId) {
         Long orderId = voucherService.addOrder(voucherId);

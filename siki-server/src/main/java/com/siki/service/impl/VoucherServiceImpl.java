@@ -1,7 +1,9 @@
 package com.siki.service.impl;
 
+import com.siki.constant.MessageConstant;
 import com.siki.context.BaseContext;
 import com.siki.entity.VoucherOrder;
+import com.siki.exception.OrderBusinessException;
 import com.siki.mapper.VoucherOrderMapper;
 import com.siki.result.PageResult;
 import com.github.pagehelper.Page;
@@ -13,6 +15,7 @@ import com.siki.mapper.VoucherMapper;
 import com.siki.service.VoucherService;
 import com.siki.utils.RedisIdWorker;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -77,36 +80,50 @@ public class VoucherServiceImpl implements VoucherService {
     }
 
     @Override
-    @Transactional
     public Long addOrder(Long id) {
         // 1.查询代金券
         Voucher voucher = voucherMapper.selectById(id);
         // 2.判断秒杀是否开始
         if (voucher.getBeginTime().isAfter(LocalDateTime.now())){
-            throw new RuntimeException("秒杀未开始");
+            throw new OrderBusinessException(MessageConstant.HAVENT_START);
         }
         // 3.判断秒杀是否结束
         if (voucher.getEndTime().isBefore(LocalDateTime.now())){
-            throw new RuntimeException("秒杀已结束");
+            throw new OrderBusinessException(MessageConstant.ALREADY_END);
         }
         // 4.判断库存是否充足
         if (voucher.getStock() <= 0){
-            throw new RuntimeException("第一次库存不足");
+            throw new OrderBusinessException(MessageConstant.NO_STOCK);
         }
-        // 5.扣减库存
-        boolean success = voucherMapper.reduceStock(id);
+        //5.一人一单
+        Long currentId = BaseContext.getCurrentId();
+        synchronized (currentId.toString().intern()) {
+            //获取代理对象（事物）
+            VoucherService proxy = (VoucherService) AopContext.currentProxy();
+            return proxy.createVoucherOrder(id, voucher, currentId);
+        }
+    }
+
+    @Transactional
+    public Long createVoucherOrder(Long id, Voucher voucher, Long currentId) {
+        //5.1 查询订单
+        int count = voucherOrderMapper.countByUserIdAndVoucherId(currentId, id);
+        //5.2 判断是否已经下单
+        if (count > 0){
+            throw new OrderBusinessException(MessageConstant.ALREADY_ORDER);
+        }
+        // 6.扣减库存
+        boolean success = voucherMapper.reduceStock(id, voucher.getStock());
         if (!success){
-            throw new RuntimeException("第二次库存不足");
+            throw new OrderBusinessException(MessageConstant.NO_STOCK);
         }
-        // 6.创建订单
+        // 7.创建订单
         VoucherOrder voucherOrder = new VoucherOrder();
-        //6.1 设置订单id
+        // 7.1 设置订单id
         Long orderId = redisIdWorker.nextId("order");
         voucherOrder.setId(orderId);
-        //6.2 设置用户id
-        Long currentId = BaseContext.getCurrentId();
         voucherOrder.setUserId(currentId);
-        //6.3 设置代金券id
+        // 7.2 设置代金券id
         voucherOrder.setVoucherId(id);
         voucherOrderMapper.addOrder(voucherOrder);
         return orderId;

@@ -21,4 +21,6 @@ public interface VoucherService {
     Long addOrder(Long id);
 
     Voucher getVoucherById(Long id);
+
+    Long createVoucherOrder(Long id, Voucher voucher, Long currentId);
 }
