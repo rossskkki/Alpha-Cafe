@@ -14,10 +14,12 @@ import com.siki.entity.Voucher;
 import com.siki.mapper.VoucherMapper;
 import com.siki.service.VoucherService;
 import com.siki.utils.RedisIdWorker;
+import com.siki.utils.SimpleRedisLock;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +37,10 @@ public class VoucherServiceImpl implements VoucherService {
 
     @Autowired
     private VoucherOrderMapper voucherOrderMapper;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
+
 
     /**
      * 添加代金券
@@ -97,10 +103,23 @@ public class VoucherServiceImpl implements VoucherService {
         }
         //5.一人一单
         Long currentId = BaseContext.getCurrentId();
-        synchronized (currentId.toString().intern()) {
-            //获取代理对象（事物）
+        //尝试创建锁对象
+        SimpleRedisLock lock = new SimpleRedisLock("order:" + currentId, redisTemplate);
+        //尝试获取锁
+        boolean isLock = lock.tryLock(1200);
+        //判断是否获取到锁
+        if (!isLock){
+            throw new OrderBusinessException(MessageConstant.ALREADY_ORDER);
+        }
+        //获取代理对象（事物）
+        try {
             VoucherService proxy = (VoucherService) AopContext.currentProxy();
             return proxy.createVoucherOrder(id, voucher, currentId);
+        } catch (IllegalStateException e) {
+            throw new RuntimeException(e);
+        } finally {
+            //释放锁
+            lock.unlock();
         }
     }
 

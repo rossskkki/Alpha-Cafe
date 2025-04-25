@@ -32,5 +32,5 @@ public class MessageConstant {
     public static final String NO_STOCK = "库存不足";
     public static final String HAVENT_START = "秒杀未开始";
     public static final String ALREADY_END = "秒杀已结束";
-    public static final String ALREADY_ORDER = "您已经购买过了";
+    public static final String ALREADY_ORDER = "您已经下单过了";
 }
