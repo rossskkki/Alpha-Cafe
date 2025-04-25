@@ -10,9 +10,19 @@ const id = ref()
 const form = reactive({
   id: 0,
   name: '',
-  type: '',
+  type: null, // Initialize as null or a default value like 1
   sort: '',
 })
+const options = [
+  {
+    value: 1,
+    label: '菜品分类',
+  },
+  {
+    value: 2,
+    label: '套餐分类',
+  }
+]
 const updateRef = ref()
 
 // 表单校验
@@ -75,10 +85,10 @@ const init = async () => {
   if (route.query) {
     id.value = route.query.id || 0
     form.id = id.value
-    let category = await getCategoryByIdAPI(id.value)
-    console.log(category)
-    category.data.data.type === 1 ? category.data.data.type = '菜品分类' : category.data.data.type = '套餐分类'
-    Object.assign(form, category.data.data)
+    let categoryRes = await getCategoryByIdAPI(id.value)
+    console.log(categoryRes)
+    // Directly assign the fetched data, ensuring type remains numeric
+    Object.assign(form, categoryRes.data.data)
     console.log(form)
   } else {
     console.log('没有id')
@@ -97,15 +107,22 @@ init()
         <el-input v-model="form.name" autocomplete="off" />
       </el-form-item>
       <el-form-item label="类别" :label-width="formLabelWidth" prop="type">
-        <el-input v-model="form.type" autocomplete="off" />
+        <el-select v-model="form.type" placeholder="请选择分类">
+          <el-option
+            v-for="item in options"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value">
+          </el-option>
+        </el-select>
       </el-form-item>
       <el-form-item label="排序" :label-width="formLabelWidth" prop="sort">
         <el-input v-model="form.sort" autocomplete="off" />
       </el-form-item>
     </el-form>
     <el-form-item>
-      <el-button class="submit_btn" type="success" @click="submit">update</el-button>
-      <el-button class="cancel_btn" type="info" plain @click="cancel">cancel</el-button>
+      <el-button class="submit_btn" type="success" @click="submit">更新</el-button>
+      <el-button class="cancel_btn" type="info" plain @click="cancel">取消</el-button>
     </el-form-item>
   </el-card>
 </template>

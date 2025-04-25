@@ -5,6 +5,7 @@ import { addSetmealAPI, getSetmealByIdAPI, updateSetmealAPI } from '@/api/setmea
 import { getCategoryPageListAPI } from '@/api/category'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { uploadFileAPI } from '@/api/common'
 
 // ------ 配置 ------
 const dialogVisible = ref(false)  // 添加菜品弹窗是否显示
@@ -36,7 +37,7 @@ const searchKey = ref('')  // 搜索关键字
 const form = reactive({
   id: 0,
   name: '',
-  pic: '',
+  image: '',
   setmealDishes: [] as SetmealDish[],
   description: '',
   price: 0,
@@ -108,28 +109,29 @@ const chooseImg = () => {
 }
 
 // 在文件管理器中选择图片后触发的改变事件：预览
-const onFileChange1 = (e: Event) => {
-  // 获取用户选择的文件列表（伪数组）
-  console.log(e)
-  const target = e.target as HTMLInputElement
+const onFileChange1 = async (e: Event) => {
+  console.log(e);
+  const target = e.target as HTMLInputElement;
   const files = target.files;
-  if (files && files.length > 0) {
-    // 选择了图片
-    console.log(files[0])
-    // 文件 -> base64字符串  (可以发给后台)
-    // 1. 创建 FileReader 对象
-    const fr = new FileReader()
-    // 2. 调用 readAsDataURL 函数，读取文件内容
-    fr.readAsDataURL(files[0])
-    // 3. 监听 fr 的 onload 事件，文件转为base64字符串成功后会触发该事件
-    fr.onload = () => {
-      // 4. 通过 e.target.result 获取到读取的结果，值是字符串（base64 格式的字符串）
-      form.pic = fr.result as string
-      console.log('avatar')
-      console.log(form.pic)
+  console.log(files);
+  if (files && files[0]) {
+    try { // 最好加上 try...catch 处理上传可能发生的错误
+      const path = await uploadFileAPI(files[0]);
+      console.log(path);
+      if (path && path.data && path.data.code === 0) { // 检查上传是否成功
+         form.image = path.data.data;
+         ElMessage.success('图片上传成功');
+      } else {
+         ElMessage.error(path?.data?.msg || '图片上传失败');
+      }
+    } catch (uploadError) {
+      console.error('Upload failed:', uploadError);
+      ElMessage.error('图片上传失败，请稍后重试');
     }
+  } else {
+    console.error('No file selected');
   }
-}
+};
 
 // 取消修改
 const cancel = () => {
@@ -233,7 +235,7 @@ const submit = async (keep: any) => {
         // 继续添加，清空表单
         form.id = 0
         form.name = ''
-        form.pic = ''
+        form.image = ''
         form.setmealDishes = []
         form.description = ''
         form.price = 0
@@ -298,9 +300,9 @@ const submit = async (keep: any) => {
       <el-form-item label="名称" :label-width="formLabelWidth" prop="name">
         <el-input v-model="form.name" autocomplete="off" />
       </el-form-item>
-      <el-form-item label="图片" :label-width="formLabelWidth" prop="pic">
-        <img class="the_img" v-if="!form.pic" src="/src/assets/image/user_default.png" alt="" />
-        <img class="the_img" v-else :src="form.pic" alt="" />
+      <el-form-item label="图片" :label-width="formLabelWidth" prop="image">
+        <img class="the_img" v-if="!form.image" src="/src/assets/image/user_default.png" alt="" />
+        <img class="the_img" v-else :src="form.image" alt="" />
         <input type="file" accept="image/*" style="display: none" ref="inputRef1" @change="onFileChange1" />
         <el-button type="primary" @click="chooseImg">
           <el-icon style="font-size: 15px; margin-right: 10px;">
