@@ -67,6 +67,7 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import {getDishDetailAPI, getHotDishDetailAPI} from '@/api/menu'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import {addToCartAPI} from '@/api/cart'
 import axios from 'axios'
 
 const router = useRouter()
@@ -157,7 +158,7 @@ const addToCart = async () => {
       number: quantity.value
     }
     
-    await axios.post('/cart/add', cartData)
+    await addToCartAPI(cartData)
     ElMessage.success('加入购物车成功')
   } catch (error: any) {
     ElMessage.error(error.response?.data?.msg || '加入购物车失败')
@@ -189,7 +190,7 @@ const addToCart = async () => {
 
 .dish-image {
   width: 100%;
-  height: 200px;
+  height: 100%;
   overflow: hidden;
   border-radius: 8px;
 }

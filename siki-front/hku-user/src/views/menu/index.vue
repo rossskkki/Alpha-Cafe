@@ -18,20 +18,6 @@
         @input="handleSearch"
       />
     </div> -->
-
-    <!-- 分类列表 -->
-    <div class="category-list">
-      <div
-        v-for="item in categoryList"
-        :key="item.id"
-        class="category-item"
-        :class="{ active: activeCategory === item.id }"
-        @click="handleCategoryClick(item.id)"
-      >
-        {{ item.name }}
-      </div>
-    </div>
-    
     <!-- 热点菜品区域 -->
     <div class="hot-dish-section" v-if="hotDishList.length > 0">
       <div class="section-title">
@@ -57,7 +43,18 @@
         </div>
       </div>
     </div>
-
+    <!-- 分类列表 -->
+    <div class="category-list">
+      <div
+        v-for="item in categoryList"
+        :key="item.id"
+        class="category-item"
+        :class="{ active: activeCategory === item.id }"
+        @click="handleCategoryClick(item.id)"
+      >
+        {{ item.name }}
+      </div>
+    </div>
     <!-- 菜品列表 -->
     <div class="menu-list" v-if="activeCategory">
       <div class="menu-title">{{ getCategoryName(activeCategory) }}</div>
