@@ -323,7 +323,7 @@ onBeforeUnmount(() => {
     <el-container>
       <el-header>
         <a href="/dashboard" class="logo-link">
-        <img src="E:\work\Java project\HKU-Alpha-Cafe\siki-front\hku-alpha\src\assets\image\logo4.png" class="logo"/>
+        <img src="..\..\assets\image\logo4.png" class="logo"/>
         </a>
         <el-icon class="icon1" v-if="isCollapse">
           <Expand @click.stop="isCollapse = !isCollapse" />

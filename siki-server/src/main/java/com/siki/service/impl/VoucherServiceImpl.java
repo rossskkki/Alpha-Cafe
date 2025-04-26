@@ -16,6 +16,8 @@ import com.siki.service.VoucherService;
 import com.siki.utils.RedisIdWorker;
 import com.siki.utils.SimpleRedisLock;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +42,9 @@ public class VoucherServiceImpl implements VoucherService {
 
     @Autowired
     private RedisTemplate redisTemplate;
+
+    @Autowired
+    private RedissonClient redissonClient;
 
 
     /**
@@ -104,9 +109,10 @@ public class VoucherServiceImpl implements VoucherService {
         //5.一人一单
         Long currentId = BaseContext.getCurrentId();
         //尝试创建锁对象
-        SimpleRedisLock lock = new SimpleRedisLock("order:" + currentId, redisTemplate);
+//        SimpleRedisLock lock = new SimpleRedisLock("order:" + currentId, redisTemplate);
+        RLock lock = redissonClient.getLock("lock:order:" + currentId);
         //尝试获取锁
-        boolean isLock = lock.tryLock(1200);
+        boolean isLock = lock.tryLock();
         //判断是否获取到锁
         if (!isLock){
             throw new OrderBusinessException(MessageConstant.ALREADY_ORDER);
