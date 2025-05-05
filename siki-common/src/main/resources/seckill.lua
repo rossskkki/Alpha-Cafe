@@ -13,6 +13,8 @@ redis.log(redis.LOG_NOTICE, "voucherId: " .. voucherId)
 --1.2 用户id
 local userId = ARGV[2]
 redis.log(redis.LOG_NOTICE, "userId: " .. userId)
+--1.3 订单id
+local orderId = ARGV[3]
 
 --2. Redis的key
 --2.1 秒杀商品库存key
@@ -43,5 +45,9 @@ end
 redis.call("incrby", stockKey, -1)
 --6. 下单成功，记录订单
 redis.call("sadd", orderKey, userId)
+
+--7. 发送详细到队列中
+redis.call('xadd', 'stream.orders', '*', 'userId', userId, 'voucherId', voucherId, 'id', orderId)
+
 --7. 返回成功
 return 0
