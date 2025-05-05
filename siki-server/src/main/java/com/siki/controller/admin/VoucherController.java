@@ -22,6 +22,11 @@ public class VoucherController {
     @Autowired
     private VoucherService voucherService;
 
+    /**
+     * 添加代金券
+     * @param VoucherAddDTO
+     * @return
+     */
     @PostMapping
     public Result addVoucher(@RequestBody VoucherAddDTO VoucherAddDTO) {
         log.info("添加代金券");

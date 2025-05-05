@@ -3,6 +3,7 @@ package com.siki.service;
 import com.siki.dto.VoucherAddDTO;
 import com.siki.dto.VoucherPageQueryDTO;
 import com.siki.entity.Voucher;
+import com.siki.entity.VoucherOrder;
 import com.siki.result.PageResult;
 
 import java.util.List;
@@ -22,5 +23,5 @@ public interface VoucherService {
 
     Voucher getVoucherById(Long id);
 
-    Long createVoucherOrder(Long id, Voucher voucher, Long currentId);
+    void createVoucherOrder(VoucherOrder voucherOrder);
 }

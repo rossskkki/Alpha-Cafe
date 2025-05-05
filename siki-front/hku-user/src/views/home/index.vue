@@ -33,7 +33,7 @@
         <el-button type="text" class="view-more-btn" @click="router.push('/seckill')">查看更多 ></el-button>
       </div>
       <div class="voucher-list">
-        <div v-for="voucher in seckillVouchers" :key="voucher.id" class="voucher-item">
+        <div v-for="voucher in filteredSeckillVouchers" :key="voucher.id" class="voucher-item">
           <el-image :src="loginBgImage" alt="代金券" class="voucher-image" ></el-image>
           <div class="voucher-info">
             <div class="voucher-title">{{ voucher.title }}</div>
@@ -80,6 +80,12 @@ const groupBuySetmeals = ref<any[]>([])
 const popularDishes = ref<any[]>([])
 // 秒杀代金券数据
 const seckillVouchers = ref<UserVoucher[]>([])
+
+// 新增计算属性，用于过滤 status 为 1 的代金券
+const filteredSeckillVouchers = computed(() => {
+  // 确保 seckillVouchers.value 存在且 voucher.status 存在
+  return seckillVouchers.value.filter(voucher => voucher && voucher.status === 1);
+});
 
 // 购物车数量
 const cartCount = computed(() => cartStore.cartCount)

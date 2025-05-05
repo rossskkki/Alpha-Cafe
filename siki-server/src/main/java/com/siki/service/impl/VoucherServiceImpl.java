@@ -21,12 +21,24 @@ import org.redisson.api.RedissonClient;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import static com.siki.constant.RedisConstants.SECKILL_STOCK_KEY;
 
 @Service
 @Slf4j
@@ -41,7 +53,7 @@ public class VoucherServiceImpl implements VoucherService {
     private VoucherOrderMapper voucherOrderMapper;
 
     @Autowired
-    private RedisTemplate redisTemplate;
+    private StringRedisTemplate redisTemplate;
 
     @Autowired
     private RedissonClient redissonClient;
@@ -57,6 +69,8 @@ public class VoucherServiceImpl implements VoucherService {
         Voucher voucher = new Voucher();
         BeanUtils.copyProperties(voucherAddDTO, voucher);
         voucherMapper.insert(voucher);
+        // 保存到redis`
+        redisTemplate.opsForValue().set(SECKILL_STOCK_KEY + voucher.getId(), voucher.getStock().toString());
     }
 
     @Override
@@ -77,6 +91,8 @@ public class VoucherServiceImpl implements VoucherService {
     @Override
     public void delete(Long id) {
         voucherMapper.delete(id);
+        // 删除redis中的代金券
+        redisTemplate.delete(SECKILL_STOCK_KEY + id);
     }
 
     @Override
@@ -90,37 +106,50 @@ public class VoucherServiceImpl implements VoucherService {
         return voucherMapper.selectById(id);
     }
 
-    @Override
-    public Long addOrder(Long id) {
-        // 1.查询代金券
-        Voucher voucher = voucherMapper.selectById(id);
-        // 2.判断秒杀是否开始
-        if (voucher.getBeginTime().isAfter(LocalDateTime.now())){
-            throw new OrderBusinessException(MessageConstant.HAVENT_START);
+    private static final DefaultRedisScript<Long> SECKILL_SCRIPT;
+    static{
+        SECKILL_SCRIPT = new DefaultRedisScript<>();
+        SECKILL_SCRIPT.setLocation(new ClassPathResource("seckill.lua"));
+        SECKILL_SCRIPT.setResultType(Long.class);
+    }
+
+    private BlockingQueue<VoucherOrder> orderTasks = new ArrayBlockingQueue<>(1024 * 1024);
+    private static  final ExecutorService SECKILL_ORDER_EXECUTOR = Executors.newSingleThreadExecutor();
+
+    @PostConstruct
+    private void init() {
+        // 启动线程
+        SECKILL_ORDER_EXECUTOR.submit(new VoucherOrderHandler());
+    }
+    private class VoucherOrderHandler implements Runnable {
+        @Override
+        public void run() {
+            while (true) {
+                try {
+                    // 1.获取订单
+                    VoucherOrder voucherOrder = orderTasks.take();
+                    // 2.创建订单
+                    handleVoucherOrder(voucherOrder);
+                } catch (Exception e) {
+                    log.error("处理订单失败", e);
+                }
+            }
         }
-        // 3.判断秒杀是否结束
-        if (voucher.getEndTime().isBefore(LocalDateTime.now())){
-            throw new OrderBusinessException(MessageConstant.ALREADY_END);
-        }
-        // 4.判断库存是否充足
-        if (voucher.getStock() <= 0){
-            throw new OrderBusinessException(MessageConstant.NO_STOCK);
-        }
-        //5.一人一单
-        Long currentId = BaseContext.getCurrentId();
-        //尝试创建锁对象
-//        SimpleRedisLock lock = new SimpleRedisLock("order:" + currentId, redisTemplate);
-        RLock lock = redissonClient.getLock("lock:order:" + currentId);
+    }
+
+    private void handleVoucherOrder(VoucherOrder voucherOrder) {
+        Long userId = voucherOrder.getUserId();
+        RLock lock = redissonClient.getLock("lock:order:" + userId);
         //尝试获取锁
         boolean isLock = lock.tryLock();
         //判断是否获取到锁
         if (!isLock){
-            throw new OrderBusinessException(MessageConstant.ALREADY_ORDER);
+            log.error("获取锁失败，用户id：{}", userId);
+            return;
         }
         //获取代理对象（事物）
         try {
-            VoucherService proxy = (VoucherService) AopContext.currentProxy();
-            return proxy.createVoucherOrder(id, voucher, currentId);
+            proxy.createVoucherOrder(voucherOrder);
         } catch (IllegalStateException e) {
             throw new RuntimeException(e);
         } finally {
@@ -129,28 +158,93 @@ public class VoucherServiceImpl implements VoucherService {
         }
     }
 
+    private VoucherService proxy;
+    @Override
+    public Long addOrder(Long id) {
+        Long currentId = BaseContext.getCurrentId();
+        long orderId;
+        // 1.执行lua脚本
+        Long result =  redisTemplate.execute(SECKILL_SCRIPT, Collections.emptyList(), id.toString(), currentId.toString());
+        // 2. 判断结果是否为0
+        int r = result.intValue();
+
+        if (r != 0){
+            // 2.1 如果不为0，说明秒杀失败，抛出异常
+            throw new OrderBusinessException(r == 1 ? MessageConstant.NO_STOCK : MessageConstant.ALREADY_ORDER);
+        }
+        // 2.2 如果为0，说明秒杀成功，继续执行
+        orderId = redisIdWorker.nextId("order");
+        // 3. 将订单放入阻塞队列
+        VoucherOrder voucherOrder = new VoucherOrder();
+        // 3.1 设置订单
+        voucherOrder.setId(orderId);
+        // 3.2 设置用户id
+        voucherOrder.setUserId(currentId);
+        // 3.3 设置代金券id
+        voucherOrder.setVoucherId(id);
+        orderTasks.add(voucherOrder);
+        // 3.4 获取代理对象
+        proxy = (VoucherService) AopContext.currentProxy();
+        // 3. 返回订单id
+        return orderId;
+    }
+
+
+//    @Override
+//    public Long addOrder(Long id) {
+//        // 1.查询代金券
+//        Voucher voucher = voucherMapper.selectById(id);
+//        // 2.判断秒杀是否开始
+//        if (voucher.getBeginTime().isAfter(LocalDateTime.now())){
+//            throw new OrderBusinessException(MessageConstant.HAVENT_START);
+//        }
+//        // 3.判断秒杀是否结束
+//        if (voucher.getEndTime().isBefore(LocalDateTime.now())){
+//            throw new OrderBusinessException(MessageConstant.ALREADY_END);
+//        }
+//        // 4.判断库存是否充足
+//        if (voucher.getStock() <= 0){
+//            throw new OrderBusinessException(MessageConstant.NO_STOCK);
+//        }
+//        //5.一人一单
+//        Long currentId = BaseContext.getCurrentId();
+//        //尝试创建锁对象
+////        SimpleRedisLock lock = new SimpleRedisLock("order:" + currentId, redisTemplate);
+//        RLock lock = redissonClient.getLock("lock:order:" + currentId);
+//        //尝试获取锁
+//        boolean isLock = lock.tryLock();
+//        //判断是否获取到锁
+//        if (!isLock){
+//            throw new OrderBusinessException(MessageConstant.ALREADY_ORDER);
+//        }
+//        //获取代理对象（事物）
+//        try {
+//            VoucherService proxy = (VoucherService) AopContext.currentProxy();
+//            return proxy.createVoucherOrder(id, voucher, currentId);
+//        } catch (IllegalStateException e) {
+//            throw new RuntimeException(e);
+//        } finally {
+//            //释放锁
+//            lock.unlock();
+//        }
+//    }
+
     @Transactional
-    public Long createVoucherOrder(Long id, Voucher voucher, Long currentId) {
+    public void createVoucherOrder(VoucherOrder voucherOrder) {
         //5.1 查询订单
-        int count = voucherOrderMapper.countByUserIdAndVoucherId(currentId, id);
+        int count = voucherOrderMapper.countByUserIdAndVoucherId(voucherOrder.getUserId(), voucherOrder.getVoucherId());
         //5.2 判断是否已经下单
         if (count > 0){
-            throw new OrderBusinessException(MessageConstant.ALREADY_ORDER);
+            log.error("用户已经下单，用户id：{}，代金券id：{}", voucherOrder.getUserId(), voucherOrder.getVoucherId());
+            return;
         }
         // 6.扣减库存
-        boolean success = voucherMapper.reduceStock(id, voucher.getStock());
+        boolean success = voucherMapper.reduceStock(voucherOrder.getVoucherId());
         if (!success){
+            log.error("库存不足，代金券id：{}", voucherOrder.getVoucherId());
             throw new OrderBusinessException(MessageConstant.NO_STOCK);
         }
-        // 7.创建订单
-        VoucherOrder voucherOrder = new VoucherOrder();
-        // 7.1 设置订单id
-        Long orderId = redisIdWorker.nextId("order");
-        voucherOrder.setId(orderId);
-        voucherOrder.setUserId(currentId);
-        // 7.2 设置代金券id
-        voucherOrder.setVoucherId(id);
+        // 7.1 创建订单
         voucherOrderMapper.addOrder(voucherOrder);
-        return orderId;
     }
 }

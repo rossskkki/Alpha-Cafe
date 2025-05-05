@@ -30,5 +30,5 @@ public interface VoucherMapper {
     Voucher selectById(Long id);
 
     @Update("update voucher set stock = stock - 1 where id = #{id} and stock > 0")
-    boolean reduceStock(Long id, Integer stock);
+    boolean reduceStock(Long id);
 }

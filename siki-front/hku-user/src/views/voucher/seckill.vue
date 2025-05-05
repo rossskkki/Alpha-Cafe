@@ -3,9 +3,9 @@
     <el-button type="default" icon="ArrowLeft" circle class="back-button" @click="goBack"></el-button>
     <h2 class="page-title">限时秒杀专区</h2>
     <div v-if="loading" class="loading-state">加载中...</div>
-    <div v-else-if="seckillVouchers.length === 0" class="empty-state">暂无秒杀活动，敬请期待！</div>
+    <div v-else-if="filteredSeckillVouchers.length === 0" class="empty-state">暂无秒杀活动，敬请期待！</div>
     <div v-else class="voucher-grid">
-      <div v-for="voucher in seckillVouchers" :key="voucher.id" class="voucher-card">
+      <div v-for="voucher in filteredSeckillVouchers" :key="voucher.id"  class="voucher-card">
         <img :src="loginBgImage" alt="代金券" class="voucher-image-full" />
         <div class="voucher-details">
           <div class="voucher-title-full">{{ voucher.title }}</div>
@@ -48,6 +48,12 @@ import { computed } from 'vue' // 引入 computed
 const router = useRouter()
 const seckillVouchers = ref<UserVoucher[]>([])
 const loading = ref(true)
+
+// 新增计算属性，用于过滤 status 为 1 的代金券
+const filteredSeckillVouchers = computed(() => {
+  // 确保 seckillVouchers.value 存在且 voucher.status 存在
+  return seckillVouchers.value.filter(voucher => voucher && voucher.status === 1);
+});
 
 // 计算折扣
 const calculateDiscount = (payValue: number, actualValue: number): string | null => {
