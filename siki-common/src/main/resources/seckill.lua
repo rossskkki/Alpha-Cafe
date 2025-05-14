@@ -6,8 +6,8 @@
 
 --1. 参数列表
 --1.1 优惠券id
-local test = 123
-redis.log(redis.LOG_NOTICE, "I CAN WRITE:" .. test)
+--local test = 123
+--redis.log(redis.LOG_NOTICE, "I CAN WRITE:" .. test)
 local voucherId = ARGV[1]
 redis.log(redis.LOG_NOTICE, "voucherId: " .. voucherId)
 --1.2 用户id
@@ -46,8 +46,8 @@ redis.call("incrby", stockKey, -1)
 --6. 下单成功，记录订单
 redis.call("sadd", orderKey, userId)
 
---7. 发送详细到队列中
-redis.call('xadd', 'stream.orders', '*', 'userId', userId, 'voucherId', voucherId, 'id', orderId)
+--7. 发送详细到队列中(stream消息队列)
+--redis.call('xadd', 'stream.orders', '*', 'userId', userId, 'voucherId', voucherId, 'id', orderId)
 
 --7. 返回成功
 return 0

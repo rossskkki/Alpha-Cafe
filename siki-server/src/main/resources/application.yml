@@ -23,7 +23,12 @@ spring:
       host: ${siki.redis.host}
       port: ${siki.redis.port}
       database: ${siki.redis.database}
-
+  rabbitmq:
+    host: ${siki.rabbitmq.host}
+    port: ${siki.rabbitmq.port}
+    virtual-host: ${siki.rabbitmq.virtual-host}
+    username: ${siki.rabbitmq.username}
+    password: ${siki.rabbitmq.password}
 mybatis:
   #mapper配置文件
   mapper-locations: classpath:mapper/*.xml
