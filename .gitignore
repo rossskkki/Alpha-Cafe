@@ -33,3 +33,6 @@ build/
 .vscode/
 /siki-front/hku-user/node_modules/
 /bash.exe.stackdump
+
+siki-server/src/main/resources/application-dev.yml
+siki-server/src/main/java/com/siki/test/GenerateTokens.java
