@@ -45,4 +45,8 @@ public class GlobalExceptionHandler {
             return Result.error(MessageConstant.UNKNOWN_ERROR);
         }
     }
+
+    public class test{
+        //test
+    }
 }
